@@ -32,44 +32,65 @@ class Plugin(PluginProtocol):
     def patch(self):
         if DEV: return
 
-        if self.get_option("add_rock_smash", False):
+        if self.get_option("add_rock_smash", False) and not self.all_plugin_options.get("hm_use", {}).get("fastest", {}):
             for i in [TO DETERMINE]:
-                if any(p.name == "Pokemon BW QoL Plugin" for p in self.all_plugins):  # To be handled by the QoL plugin
-                    continue
-                else:
-                    loaded_file = pkgutil.get_data(__name__, f"files/a125/blind_trainers/{i:03d}")
+                loaded_file = pkgutil.get_data(__name__, f"files/a125/blind_trainers/{i:03d}")
                 narc_file = self.get_from_narc("a/1/2/5", i)
                 self.otpp_patch_array(narc_file, loaded_file)
 
-        if self.get_option("hm_with_badges", False):
+        if self.get_option("hm_with_badges", False) and not self.all_plugin_options.get("hm_use", {}).get("fastest", {}):
             for i in [TO DETERMINE]:
-                if any(p.name == "Pokemon BW QoL Plugin" for p in self.all_plugins):
-                    continue
-                else:
-                    loaded_file = pkgutil.get_data(__name__, f"files/a125/blind_trainers/{i:03d}")
+                loaded_file = pkgutil.get_data(__name__, f"files/a125/blind_trainers/{i:03d}")
                 narc_file = self.get_from_narc("a/1/2/5", i)
                 self.otpp_patch_array(narc_file, loaded_file)
 
-        if self.get_option("add_ss_ticket", False):
+        if self.get_option("add_ss_ticket", False) and not (self.all_plugin_options.get("blind_trainers", {})
             for i in [TO DETERMINE]:
-                if any(p.name == "Pokemon BW QoL Plugin" for p in self.all_plugins):
-                    continue
-                else:
-                    loaded_file = pkgutil.get_data(__name__, f"files/a125/blind_trainers/{i:03d}")
+                loaded_file = pkgutil.get_data(__name__, f"files/a125/blind_trainers/{i:03d}")
                 narc_file = self.get_from_narc("a/1/2/5", i)
                 self.otpp_patch_array(narc_file, loaded_file)
 
-    # This is called pretty much at the beginning of generating the world.
-    def generate_early(self):
-        from worlds.pokemon_bw.data.locations.rules import can_use_surf, can_use_waterfall, can_use_dive, can_use_cut, can_use_strength, can_use_surf_or_strength
+    # This is called after generating all wild encounters, static encounters, and trainer teams.
+    def generate_encounter(self):
+        from worlds.pokemon_bw.generate import EncounterEntry, StaticEncounterEntry, TrainerPokemonEntry
+
+        if DEV: return
+
+        #if self.get_option("add_rock_smash", False):
+        #using rock smash forces an encounter against number 557 Dwebble
+
+    # This is called after generating all regions, regions connections, locations, and events
+    def create_regions(self, catchable_species_data: dict[str, "SpeciesData"]):
+        from worlds.pokemon_bw.data.locations.rules import can_use_surf, can_use_waterfall, can_use_dive, can_use_cut, can_use_strength, can_use_surf_or_strength, challengers_cave
         if DEV: return
 
         if self.get_option("add_rock_smash", False):
-            def can_use_rock_smash("ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:  # Not sure I need that since it's a new rule
+            world.rock_smash_species = set(name for name, data in world.species_entries.items() if "TM94" in data.tm_hm_moves.tm_hm_moves)
+            def can_use_rock_smash(state: CollectionState, world: "PokemonBWWorld") -> bool:  # Not sure I need that since it's a new rule
                 return state.has("TM94 Rock Smash", world.player) and state.has_any(world.rock_smash_species, world.player)
 
-            def can_use_surf_or_rock_smash("ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:
+            def can_use_surf_or_rock_smash(state: CollectionState, world: "PokemonBWWorld") -> bool:
                 return can_use_surf(state, world) or can_use_rock_smash(state, world)
+
+            self.world.regions["Wellspring Cave Entrance"].connect(
+                self.world.regions["Challenger's Cave"],
+                "Wellspring Cave to Challenger's Cave Warp",
+                lambda state: can_use_rock_smash(state, world)
+            )
+            self.world.regions["Challenger's Cave"].connect(
+                self.world.regions["Wellspring Cave Entrance"],
+                "Challenger's Cave to Wellspring Cave Warp",
+                lambda state: can_use_rock_smash(state, world) and challengers_cave(state, world)
+            )
+            # "Wellspring Cave - 1F hidden item #1": FlagLocationData(1062, always_default, "Wellspring Cave Entrance", None, None), -> can_use_surf_or_rock_smash
+            # "Wellspring Cave - 1F north east item": FlagLocationData(1238, always_default, "Wellspring Cave Entrance", None, None), -> can_use_surf_or_rock_smash
+            # "Challenger's Cave - B1F south item": FlagLocationData(1269, always_default, "Challenger's Cave", None, None), -> can_use_rock_smash
+            # self.world.get_location???? FlagLocationData???? Maybe the flag data is enough?
+            # self.world.get_location("Wellspring Cave - 1F hidden item #1").access_rule = lambda state: can_use_surf_or_rock_smash(state, world)  # But it still needs dowsing machine if Require Dowsing Machine?
+            # self.world.get_location("Wellspring Cave - 1F north east item").access_rule = lambda state: can_use_surf_or_rock_smash(state, world)
+            # self.world.get_location("Challenger's Cave - B1F south item").access_rule = lambda state: can_use_rock_smash(state, world)
+            self.world.get_entrance("Route 13 south gate").access_rule = lambda state: can_use_rock_smash(state, world)
+            self.world.get_entrance("Undella Town north gate").access_rule = lambda state: can_use_rock_smash(state, world)
 
         if self.get_option("hm_with_badges", False):
             def cut_with_trio_badge(old_rule: "ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:
@@ -102,13 +123,6 @@ class Plugin(PluginProtocol):
                 def rock_smash_with_basic_badge(old_rule: "ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:
                     return old_rule(state, world) and state.has("Basic Badge", world.player)
                 self.modify_rule(can_use_rock_smash, rock_smash_with_basic_badge)
-            else
-                continue
-
-    # This is called after generating all regions, regions connections, locations, and events
-    def create_regions(self, catchable_species_data: dict[str, "SpeciesData"]):
-        from worlds.pokemon_bw.data.locations.rules import challengers_cave
-        if DEV: return
 
         if self.get_option("add_ss_ticket", False):
             self.world.regions["P2 Laboratory"].connect(
@@ -132,28 +146,6 @@ class Plugin(PluginProtocol):
                 lambda state: state.has("S.S. Ticket", self.world.player) and state.has("Liberty Pass", self.world.player)
             )
 
-        if self.get_option("add_rock_smash", False):
-            self.world.regions["Wellspring Cave Entrance"].connect(
-                self.world.regions["Challenger's Cave"],
-                "Wellspring Cave to Challenger's Cave Warp",
-                lambda state: can_use_rock_smash(state, world)
-            )
-            self.world.regions["Challenger's Cave"].connect(
-                self.world.regions["Wellspring Cave"],
-                "Challenger's Cave to Wellspring Cave Warp",
-                lambda state: can_use_rock_smash(state, world) and challengers_cave(state, world)
-            )
-            self.world.regions["Undella Town"].connect(  # Probably not good, need to change the old connection. How to put locations in there?
-                self.world.regions["Route 13"],
-                "Route 13 South",
-                lambda state: can_use_rock_smash(state, world)
-            )
-            self.world.regions["Route 13"].connect(
-                self.world.regions["Undella Town"],
-                "Route 13 North",
-                lambda state: can_use_rock_smash(state, world)
-            )
-
     # This is called after generating the item pool of a world and placing all locked items (e.g. gym badges in gym rewards)
     def create_items(self, item_pool: list["PokemonBWItem"]):
         if DEV: return
@@ -162,20 +154,13 @@ class Plugin(PluginProtocol):
         if self.get_option("add_ss_ticket", False):
             for i in range(len(item_pool)):
                 item = item_pool[i]
-                if item.name == "S.S. Ticket":
-                    item.classification = ItemClassification.progression
-            for i in range(len(item_pool)):
-                item = item_pool[i]
                 if item.classification == ItemClassification.filler:
-                    item_pool[i] = self.new_item("S.S. Ticket")
+                    item_pool[i] = self.new_item("S.S. Ticket", ItemClassification.progression)
                     break
 
         # Add Rock Smash
         if self.get_option("add_rock_smash", False):
-            for i in range(len(item_pool)):
-                item = item_pool[i]
-                if item.name == "TM94 Rock Smash":
-                    item.classification = ItemClassification.progression
+            tm_hm.tm["TM94 Rock Smash"] = tm_hm.tm["TM94 Rock Smash"]._replace(classification=classification.always_progression)  # This will make TM94 progression for all BW players in the multiworld
 
 
 # Just run this python script and it will pack this plugin into an apworld file for you.
