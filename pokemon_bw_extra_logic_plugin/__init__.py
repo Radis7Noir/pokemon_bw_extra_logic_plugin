@@ -12,6 +12,7 @@ try:
         from worlds.pokemon_bw.ndspy.rom import NintendoDSRom
         from worlds.pokemon_bw.rom import PokemonBWPatch
         from worlds.pokemon_bw.items import PokemonBWItem
+        from worlds.pokemon_bw.locations import PokemonBWLocation
         from worlds.pokemon_bw.data import SpeciesData, ExtendedRule
         from worlds.pokemon_bw import PokemonBWWorld
     from worlds.pokemon_bw.plugins._dev import DEV
@@ -32,36 +33,54 @@ class Plugin(PluginProtocol):
     def patch(self):
         if DEV: return
 
-        if self.get_option("add_rock_smash", False) and not self.all_plugin_options.get("hm_use", {}).get("fastest", {}):
-            for i in [TO DETERMINE]:
-                loaded_file = pkgutil.get_data(__name__, f"files/a125/blind_trainers/{i:03d}")
+        if not any(p.name == "Pokemon BW QoL Plugin" for p in self.all_plugins):
+            for i in [642, 648, 706, 866]:
+                loaded_file = pkgutil.get_data(__name__, f"files/a057/{i:03d}")
+                narc_file = self.get_from_narc("a/0/5/7", i)
+                self.otpp_patch_array(narc_file, loaded_file)
+            for i in [21, 67, 280, 353, 356, 385]:
+                loaded_file = pkgutil.get_data(__name__, f"files/a003/{i:03d}")
+                narc_file = self.get_from_narc("a/0/0/3", i)
+                self.otpp_patch_array(narc_file, loaded_file)
+            for i in [16, 62, 154, 155, 321]:
+                loaded_file = pkgutil.get_data(__name__, f"files/a125/{i:03d}")
                 narc_file = self.get_from_narc("a/1/2/5", i)
                 self.otpp_patch_array(narc_file, loaded_file)
 
-        if self.get_option("hm_with_badges", False) and not self.all_plugin_options.get("hm_use", {}).get("fastest", {}):
-            for i in [TO DETERMINE]:
-                loaded_file = pkgutil.get_data(__name__, f"files/a125/blind_trainers/{i:03d}")
+            if not self.get_option("hm_with_badges", False):
+                loaded_file = pkgutil.get_data(__name__, f"files/a057/867_vanilla")
+                narc_file = self.get_from_narc("a/0/5/7", 867)
+                self.otpp_patch_array(narc_file, loaded_file)
+
+            if self.get_option("hm_with_badges", False):
+                loaded_file = pkgutil.get_data(__name__, f"files/a057/867_badgevanilla")
+                narc_file = self.get_from_narc("a/0/5/7", 867)
+                self.otpp_patch_array(narc_file, loaded_file)
+
+        if self.get_option("add_rock_smash", False):
+            for i in [70, 356, 363]:
+                loaded_file = pkgutil.get_data(__name__, f"files/a008/add_rock_smash/{i:03d}")
+                narc_file = self.get_from_narc("a/0/0/8", i)
+                self.otpp_patch_array(narc_file, loaded_file)
+            for i in [324, 348, 353, 370]:
+                loaded_file = pkgutil.get_data(__name__, f"files/a125/add_rock_smash/{i:03d}")
                 narc_file = self.get_from_narc("a/1/2/5", i)
                 self.otpp_patch_array(narc_file, loaded_file)
 
-        if self.get_option("add_ss_ticket", False) and not (self.all_plugin_options.get("blind_trainers", {})
-            for i in [TO DETERMINE]:
-                loaded_file = pkgutil.get_data(__name__, f"files/a125/blind_trainers/{i:03d}")
+        if self.get_option("add_ss_ticket", False):
+            for i in [470, 476, 824]:
+                loaded_file = pkgutil.get_data(__name__, f"files/a057/add_ss_ticket/{i:03d}")
+                narc_file = self.get_from_narc("a/0/5/7", i)
+                self.otpp_patch_array(narc_file, loaded_file)
+            for i in [235, 238, 412]:
+                loaded_file = pkgutil.get_data(__name__, f"files/a125/add_ss_ticket/{i:03d}")
                 narc_file = self.get_from_narc("a/1/2/5", i)
                 self.otpp_patch_array(narc_file, loaded_file)
 
-    # This is called after generating all wild encounters, static encounters, and trainer teams.
-    def generate_encounter(self):
-        from worlds.pokemon_bw.generate import EncounterEntry, StaticEncounterEntry, TrainerPokemonEntry
-
-        if DEV: return
-
-        #if self.get_option("add_rock_smash", False):
-        #using rock smash forces an encounter against number 557 Dwebble
 
     # This is called after generating all regions, regions connections, locations, and events
     def create_regions(self, catchable_species_data: dict[str, "SpeciesData"]):
-        from worlds.pokemon_bw.data.locations.rules import can_use_surf, can_use_waterfall, can_use_dive, can_use_cut, can_use_strength, can_use_surf_or_strength, challengers_cave
+        from worlds.pokemon_bw.data.locations.rules import can_use_surf, can_use_waterfall, can_use_dive, can_use_cut, can_use_strength, can_use_surf_or_strength, dark_cave
         if DEV: return
 
         if self.get_option("add_rock_smash", False):
@@ -69,28 +88,41 @@ class Plugin(PluginProtocol):
             def can_use_rock_smash(state: CollectionState, world: "PokemonBWWorld") -> bool:  # Not sure I need that since it's a new rule
                 return state.has("TM94 Rock Smash", world.player) and state.has_any(world.rock_smash_species, world.player)
 
-            def can_use_surf_or_rock_smash(state: CollectionState, world: "PokemonBWWorld") -> bool:
-                return can_use_surf(state, world) or can_use_rock_smash(state, world)
-
             self.world.regions["Wellspring Cave Entrance"].connect(
                 self.world.regions["Challenger's Cave"],
                 "Wellspring Cave to Challenger's Cave Warp",
-                lambda state: can_use_rock_smash(state, world)
+                lambda state: can_use_rock_smash(state, self.world)
             )
             self.world.regions["Challenger's Cave"].connect(
                 self.world.regions["Wellspring Cave Entrance"],
                 "Challenger's Cave to Wellspring Cave Warp",
-                lambda state: can_use_rock_smash(state, world) and challengers_cave(state, world)
+                lambda state: can_use_rock_smash(state, self.world) and dark_cave(state, world)
             )
-            # "Wellspring Cave - 1F hidden item #1": FlagLocationData(1062, always_default, "Wellspring Cave Entrance", None, None), -> can_use_surf_or_rock_smash
-            # "Wellspring Cave - 1F north east item": FlagLocationData(1238, always_default, "Wellspring Cave Entrance", None, None), -> can_use_surf_or_rock_smash
-            # "Challenger's Cave - B1F south item": FlagLocationData(1269, always_default, "Challenger's Cave", None, None), -> can_use_rock_smash
-            # self.world.get_location???? FlagLocationData???? Maybe the flag data is enough?
-            # self.world.get_location("Wellspring Cave - 1F hidden item #1").access_rule = lambda state: can_use_surf_or_rock_smash(state, world)  # But it still needs dowsing machine if Require Dowsing Machine?
-            # self.world.get_location("Wellspring Cave - 1F north east item").access_rule = lambda state: can_use_surf_or_rock_smash(state, world)
-            # self.world.get_location("Challenger's Cave - B1F south item").access_rule = lambda state: can_use_rock_smash(state, world)
-            self.world.get_entrance("Route 13 south gate").access_rule = lambda state: can_use_rock_smash(state, world)
-            self.world.get_entrance("Undella Town north gate").access_rule = lambda state: can_use_rock_smash(state, world)
+
+            region = self.world.regions["Wellspring Cave Entrance"]
+            location = PokemonBWLocation(self.world.player, "Rock Smash static Wellspring Cave", None, region)
+            location.place_locked_item(PokemonBWItem("Dwebble", ItemClassification.progression, None, self.world.player))
+            location.access_rule = lambda state: can_use_rock_smash(state, self.world)
+            region.locations.append(location)
+
+            region = self.world.regions["Challenger's Cave"]
+            location = PokemonBWLocation(self.world.player, "Rock Smash static Challenger's Cave", None, region)
+            location.place_locked_item(PokemonBWItem("Dwebble", ItemClassification.progression, None, self.world.player))
+            location.access_rule = lambda state: can_use_rock_smash(state, self.world) and dark_cave(state, world)
+            region.locations.append(location)
+
+            region = self.world.regions["Route 13"]
+            location = PokemonBWLocation(self.world.player, "Rock Smash static Route 13", None, region)
+            location.place_locked_item(PokemonBWItem("Dwebble", ItemClassification.progression, None, self.world.player))
+            location.access_rule = lambda state: can_use_rock_smash(state, self.world)
+            region.locations.append(location)
+
+            self.world.get_location("Wellspring Cave - 1F hidden item #1").access_rule = lambda state: can_use_rock_smash(state, self.world)
+            self.world.get_location("Wellspring Cave - 1F north east item").access_rule = lambda state: can_use_rock_smash(state, self.world)
+            self.world.get_location("Challenger's Cave - B1F south item").access_rule = lambda state: can_use_rock_smash(state, self.world)
+
+            self.world.get_entrance("Route 13 south gate").access_rule = lambda state: can_use_rock_smash(state, self.world)
+            self.world.get_entrance("Undella Town north gate").access_rule = lambda state: can_use_rock_smash(state, self.world)
 
         if self.get_option("hm_with_badges", False):
             def cut_with_trio_badge(old_rule: "ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:
@@ -116,7 +148,7 @@ class Plugin(PluginProtocol):
             self.modify_rule(can_use_dive, dive_with_legend_badge)
 
             def surf_or_strength_with_badge(old_rule: "ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:
-                return can_use_surf(state, world) or can_use_strength(state, world)
+                return surf_with_quake_badge(state, world.player) or strength_with_bolt_badge(state, world.player)
             self.modify_rule(can_use_surf_or_strength, surf_or_strength_with_badge)
 
             if self.get_option("add_rock_smash", False):
@@ -145,6 +177,7 @@ class Plugin(PluginProtocol):
                 "Undella Town to Liberty Garden Ferry",
                 lambda state: state.has("S.S. Ticket", self.world.player) and state.has("Liberty Pass", self.world.player)
             )
+
 
     # This is called after generating the item pool of a world and placing all locked items (e.g. gym badges in gym rewards)
     def create_items(self, item_pool: list["PokemonBWItem"]):
