@@ -68,6 +68,10 @@ class Plugin(PluginProtocol):
                 self.otpp_patch_array(narc_file, loaded_file)
 
         if self.get_option("add_ss_ticket", False):
+            for i in [243, 246, 451]:
+                loaded_file = pkgutil.get_data(__name__, f"files/a003/add_ss_ticket/{i:03d}")
+                narc_file = self.get_from_narc("a/0/0/3", i)
+                self.otpp_patch_array(narc_file, loaded_file)
             for i in [470, 476, 824]:
                 loaded_file = pkgutil.get_data(__name__, f"files/a057/add_ss_ticket/{i:03d}")
                 narc_file = self.get_from_narc("a/0/5/7", i)
@@ -84,8 +88,8 @@ class Plugin(PluginProtocol):
         if DEV: return
 
         if self.get_option("add_rock_smash", False):
-            world.rock_smash_species = set(name for name, data in world.species_entries.items() if "TM94" in data.tm_hm_moves.tm_hm_moves)
-            def can_use_rock_smash(state: CollectionState, world: "PokemonBWWorld") -> bool:  # Not sure I need that since it's a new rule
+            self.world.rock_smash_species = set(name for name, data in self.world.species_entries.items() if "TM94" in data.tm_hm_moves.tm_hm_moves)
+            def can_use_rock_smash(state: CollectionState, world: "PokemonBWWorld") -> bool:
                 return state.has("TM94 Rock Smash", world.player) and state.has_any(world.rock_smash_species, world.player)
 
             self.world.regions["Wellspring Cave Entrance"].connect(
@@ -96,7 +100,7 @@ class Plugin(PluginProtocol):
             self.world.regions["Challenger's Cave"].connect(
                 self.world.regions["Wellspring Cave Entrance"],
                 "Challenger's Cave to Wellspring Cave Warp",
-                lambda state: can_use_rock_smash(state, self.world) and dark_cave(state, world)
+                lambda state: can_use_rock_smash(state, self.world) and dark_cave(state, self.world)
             )
 
             region = self.world.regions["Wellspring Cave Entrance"]
@@ -108,7 +112,7 @@ class Plugin(PluginProtocol):
             region = self.world.regions["Challenger's Cave"]
             location = PokemonBWLocation(self.world.player, "Rock Smash static Challenger's Cave", None, region)
             location.place_locked_item(PokemonBWItem("Dwebble", ItemClassification.progression, None, self.world.player))
-            location.access_rule = lambda state: can_use_rock_smash(state, self.world) and dark_cave(state, world)
+            location.access_rule = lambda state: can_use_rock_smash(state, self.world) and dark_cave(state, self.world)
             region.locations.append(location)
 
             region = self.world.regions["Route 13"]
@@ -148,7 +152,7 @@ class Plugin(PluginProtocol):
             self.modify_rule(can_use_dive, dive_with_legend_badge)
 
             def surf_or_strength_with_badge(old_rule: "ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:
-                return surf_with_quake_badge(state, world.player) or strength_with_bolt_badge(state, world.player)
+                return surf_with_quake_badge(old_rule, state, world) or strength_with_bolt_badge(old_rule, state, world)
             self.modify_rule(can_use_surf_or_strength, surf_or_strength_with_badge)
 
             if self.get_option("add_rock_smash", False):
@@ -181,6 +185,7 @@ class Plugin(PluginProtocol):
 
     # This is called after generating the item pool of a world and placing all locked items (e.g. gym badges in gym rewards)
     def create_items(self, item_pool: list["PokemonBWItem"]):
+        from worlds.pokemon_bw.data.items import tm_hm, classification
         if DEV: return
 
         # Add S.S. Ticket
