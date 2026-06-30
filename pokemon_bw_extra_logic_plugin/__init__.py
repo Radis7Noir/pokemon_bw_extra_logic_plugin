@@ -86,6 +86,7 @@ class Plugin(PluginProtocol):
     def create_regions(self, catchable_species_data: dict[str, "SpeciesData"]):
         from worlds.pokemon_bw.items import PokemonBWItem
         from worlds.pokemon_bw.locations import PokemonBWLocation
+        from worlds.pokemon_bw.data.items import tm_hm, classification
         from worlds.pokemon_bw.data.pokemon.movesets import table as moveset_table
         from worlds.pokemon_bw.data.locations.rules import can_use_surf, can_use_waterfall, can_use_dive, can_use_cut, can_use_strength, can_use_surf_or_strength, dark_cave
         if DEV: return
@@ -95,10 +96,12 @@ class Plugin(PluginProtocol):
             def can_use_rock_smash(state: CollectionState, world: "PokemonBWWorld") -> bool:
                 return state.has("TM94 Rock Smash", world.player) and state.has_any(world.rock_smash_species, world.player)
 
+            tm_hm.tm["TM94 Rock Smash"] = tm_hm.tm["TM94 Rock Smash"]._replace(classification=classification.always_progression)  # This will make TM94 progression for all BW players in the multiworld
+
             self.world.regions["Wellspring Cave Entrance"].connect(
                 self.world.regions["Challenger's Cave"],
                 "Wellspring Cave to Challenger's Cave Warp",
-                lambda state: can_use_rock_smash(state, self.world)
+                lambda state: can_use_rock_smash(state, self.world) and dark_cave(state, self.world)
             )
             self.world.regions["Challenger's Cave"].connect(
                 self.world.regions["Wellspring Cave Entrance"],
@@ -164,6 +167,11 @@ class Plugin(PluginProtocol):
                 self.modify_rule(can_use_rock_smash, rock_smash_with_basic_badge)
 
         if self.get_option("add_ss_ticket", False):
+            self.world.regions["Liberty Garden"].connect(
+                self.world.regions["Castelia City"],
+                "Liberty Garden to Castelia City Ferry",
+                lambda state: True
+                )
             self.world.regions["P2 Laboratory"].connect(
                 self.world.regions["Liberty Garden"],
                 "P2 Lab to Liberty Garden Ferry",
@@ -187,7 +195,6 @@ class Plugin(PluginProtocol):
 
     # This is called after generating the item pool of a world and placing all locked items (e.g. gym badges in gym rewards)
     def create_items(self, item_pool: list["PokemonBWItem"]):
-        from worlds.pokemon_bw.data.items import tm_hm, classification
         if DEV: return
 
         # Add S.S. Ticket
@@ -197,10 +204,6 @@ class Plugin(PluginProtocol):
                 if item.classification == ItemClassification.filler:
                     item_pool[i] = self.new_item("S.S. Ticket", ItemClassification.progression)
                     break
-
-        # Add Rock Smash
-        if self.get_option("add_rock_smash", False):
-            tm_hm.tm["TM94 Rock Smash"] = tm_hm.tm["TM94 Rock Smash"]._replace(classification=classification.always_progression)  # This will make TM94 progression for all BW players in the multiworld
 
 
 # Just run this python script and it will pack this plugin into an apworld file for you.
