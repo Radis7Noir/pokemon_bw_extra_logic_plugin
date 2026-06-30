@@ -34,7 +34,7 @@ class Plugin(PluginProtocol):
         if DEV: return
 
         if not any(p.name == "Pokemon BW QoL Plugin" for p in self.all_plugins):
-            for i in [642, 648, 706, 866]:
+            for i in [12, 32, 308, 310, 642, 648, 652, 706, 866]:
                 loaded_file = pkgutil.get_data(__name__, f"files/a057/{i:03d}")
                 narc_file = self.get_from_narc("a/0/5/7", i)
                 self.otpp_patch_array(narc_file, loaded_file)
@@ -84,11 +84,14 @@ class Plugin(PluginProtocol):
 
     # This is called after generating all regions, regions connections, locations, and events
     def create_regions(self, catchable_species_data: dict[str, "SpeciesData"]):
+        from worlds.pokemon_bw.items import PokemonBWItem
+        from worlds.pokemon_bw.locations import PokemonBWLocation
+        from worlds.pokemon_bw.data.pokemon.movesets import table as moveset_table
         from worlds.pokemon_bw.data.locations.rules import can_use_surf, can_use_waterfall, can_use_dive, can_use_cut, can_use_strength, can_use_surf_or_strength, dark_cave
         if DEV: return
 
         if self.get_option("add_rock_smash", False):
-            self.world.rock_smash_species = set(name for name, data in self.world.species_entries.items() if "TM94" in data.tm_hm_moves.tm_hm_moves)
+            self.world.rock_smash_species = set(name for name, data in moveset_table.items() if "TM94" in data.tm_hm_moves)
             def can_use_rock_smash(state: CollectionState, world: "PokemonBWWorld") -> bool:
                 return state.has("TM94 Rock Smash", world.player) and state.has_any(world.rock_smash_species, world.player)
 
@@ -181,7 +184,6 @@ class Plugin(PluginProtocol):
                 "Undella Town to Liberty Garden Ferry",
                 lambda state: state.has("S.S. Ticket", self.world.player) and state.has("Liberty Pass", self.world.player)
             )
-
 
     # This is called after generating the item pool of a world and placing all locked items (e.g. gym badges in gym rewards)
     def create_items(self, item_pool: list["PokemonBWItem"]):
