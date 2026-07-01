@@ -91,6 +91,83 @@ class Plugin(PluginProtocol):
         from worlds.pokemon_bw.data.locations.rules import can_use_surf, can_use_waterfall, can_use_dive, can_use_cut, can_use_strength, can_use_surf_or_strength, dark_cave, challengers_cave
         if DEV: return
 
+        # Missing Connections
+        self.world.regions["Route 3"].connect(
+            self.world.regions["Striaton City"],
+            "Route 3 to Striaton City",
+            lambda state: state.has("Parcel", self.world.player)
+        )
+        self.world.regions["Nacrene City"].connect(
+            self.world.regions["Route 3"],
+            "Nacrene City to Route 3",
+            lambda state: True
+        )
+        self.world.regions["Pinwheel Forest Outside"].connect(
+            self.world.regions["Nacrene City"],
+            "Pinwheel Forest Outside to Nacrene City",
+            lambda state: True
+        )
+        self.world.regions["Pinwheel Forest West"].connect(
+            self.world.regions["Pinwheel Forest Outside"],
+            "Pinwheel Forest West to Pinwheel Forest Outside",
+            lambda state: state.has("Loot Sack", self.world.player)
+        )
+        self.world.regions["Skyarrow Bridge"].connect(
+            self.world.regions["Pinwheel Forest West"],
+            "Skyarrow Bridge to Pinwheel Forest West",
+            lambda state: state.has("Dragon Skull", self.world.player)
+        )
+        self.world.regions["Castelia City"].connect(
+            self.world.regions["Skyarrow Bridge"],
+            "Castelia City to Skyarrow Bridge",
+            lambda state: True
+        )
+        self.world.regions["Route 4 South"].connect(
+            self.world.regions["Castelia City"],
+            "Route 4 South to Castelia City",
+            lambda state: True
+        )
+        self.world.regions["Route 4 North"].connect(
+            self.world.regions["Route 4 South"],
+            "Route 4 North to Route 4 South",
+            lambda state: state.has("Machine Part", self.world.player)
+        )
+        self.world.regions["Nimbasa City"].connect(
+            self.world.regions["Route 4 North"],
+            "Nimbasa City to Route 4 North",
+            lambda state: True
+        )
+        self.world.regions["Driftveil Drawbridge"].connect(
+            self.world.regions["Route 5"],
+            "Driftveil Drawbridge to Route 5",
+            lambda state: state.has("Tidal Bell", self.world.player)
+        )
+        self.world.regions["Route 16"].connect(
+            self.world.regions["Nimbasa City"],
+            "Route 16 to Nimbasa City",
+            lambda state: True
+        )
+        self.world.regions["Marvelous Bridge"].connect(
+            self.world.regions["Route 16"],
+            "Marvelous Bridge to Route 16",
+            lambda state: state.has("Blue Card", self.world.player)
+        )
+        self.world.regions["Challenger's Cave"].connect(
+            self.world.regions["Route 9"],
+            "Challenger's Cave Exit to Route 9",
+            lambda state: challengers_cave(state, self.world)
+        )
+        self.world.regions["Wellspring Cave Entrance"].connect(
+            self.world.regions["Route 3"],
+            "Wellspring Cave Exit to Route 3",
+            lambda state: True
+        )
+        self.world.regions["Liberty Garden"].connect(
+            self.world.regions["Castelia City"],
+            "Liberty Garden to Castelia City Ferry",
+            lambda state: True
+            )
+
         if self.get_option("add_rock_smash", False):
             self.world.rock_smash_species = set(name for name, data in moveset_table.items() if "TM94" in data.tm_hm_moves)
             def can_use_rock_smash(state: CollectionState, world: "PokemonBWWorld") -> bool:
@@ -98,11 +175,6 @@ class Plugin(PluginProtocol):
 
             tm_hm.tm["TM94 Rock Smash"] = tm_hm.tm["TM94 Rock Smash"]._replace(classification=classification.always_progression)  # This will make TM94 progression for all BW players in the multiworld
 
-            self.world.regions["Wellspring Cave Entrance"].connect(
-                self.world.regions["Route 3"],
-                "Wellspring Cave Exit to Route 3",
-                lambda state: True
-            )
             self.world.regions["Wellspring Cave Entrance"].connect(
                 self.world.regions["Challenger's Cave"],
                 "Wellspring Cave to Challenger's Cave Warp",
@@ -112,11 +184,6 @@ class Plugin(PluginProtocol):
                 self.world.regions["Wellspring Cave Entrance"],
                 "Challenger's Cave to Wellspring Cave Warp",
                 lambda state: can_use_rock_smash(state, self.world) and dark_cave(state, self.world)
-            )
-            self.world.regions["Challenger's Cave"].connect(
-                self.world.regions["Route 9"],
-                "Challenger's Cave Exit to Route 9",
-                lambda state: challengers_cave(state, self.world)
             )
 
             region = self.world.regions["Wellspring Cave Entrance"]
@@ -177,11 +244,6 @@ class Plugin(PluginProtocol):
                 self.modify_rule(can_use_rock_smash, rock_smash_with_basic_badge)
 
         if self.get_option("add_ss_ticket", False):
-            self.world.regions["Liberty Garden"].connect(
-                self.world.regions["Castelia City"],
-                "Liberty Garden to Castelia City Ferry",
-                lambda state: True
-                )
             self.world.regions["P2 Laboratory"].connect(
                 self.world.regions["Liberty Garden"],
                 "P2 Lab to Liberty Garden Ferry",
