@@ -4,6 +4,7 @@ Changelog
 
 ## v2
 * Added a missing connection between Challenger's Cave and Route 9
+* Added a missing connection between Wellspring Cave and Route 3
 
 ## v1
 * Added `add_rock_smash` option

@@ -99,6 +99,11 @@ class Plugin(PluginProtocol):
             tm_hm.tm["TM94 Rock Smash"] = tm_hm.tm["TM94 Rock Smash"]._replace(classification=classification.always_progression)  # This will make TM94 progression for all BW players in the multiworld
 
             self.world.regions["Wellspring Cave Entrance"].connect(
+                self.world.regions["Route 3"],
+                "Wellspring Cave Exit to Route 3",
+                lambda state: True
+            )
+            self.world.regions["Wellspring Cave Entrance"].connect(
                 self.world.regions["Challenger's Cave"],
                 "Wellspring Cave to Challenger's Cave Warp",
                 lambda state: can_use_rock_smash(state, self.world) and dark_cave(state, self.world)
