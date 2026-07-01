@@ -88,7 +88,7 @@ class Plugin(PluginProtocol):
         from worlds.pokemon_bw.locations import PokemonBWLocation
         from worlds.pokemon_bw.data.items import tm_hm, classification
         from worlds.pokemon_bw.data.pokemon.movesets import table as moveset_table
-        from worlds.pokemon_bw.data.locations.rules import can_use_surf, can_use_waterfall, can_use_dive, can_use_cut, can_use_strength, can_use_surf_or_strength, dark_cave
+        from worlds.pokemon_bw.data.locations.rules import can_use_surf, can_use_waterfall, can_use_dive, can_use_cut, can_use_strength, can_use_surf_or_strength, dark_cave, challengers_cave
         if DEV: return
 
         if self.get_option("add_rock_smash", False):
@@ -107,6 +107,11 @@ class Plugin(PluginProtocol):
                 self.world.regions["Wellspring Cave Entrance"],
                 "Challenger's Cave to Wellspring Cave Warp",
                 lambda state: can_use_rock_smash(state, self.world) and dark_cave(state, self.world)
+            )
+            self.world.regions["Challenger's Cave"].connect(
+                self.world.regions["Route 9"],
+                "Challenger's Cave Exit to Route 9",
+                lambda state: challengers_cave(state, self.world)
             )
 
             region = self.world.regions["Wellspring Cave Entrance"]
