@@ -25,7 +25,7 @@ class Plugin(PluginProtocol):
 
     name = "Pokemon BW Extra Logic Plugin"
     domain = "extra_logic"
-    version = "1.0.0"
+    version = "1.2.0"
     author = "RadisNoir"
 
 
