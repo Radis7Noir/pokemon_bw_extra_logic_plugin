@@ -168,6 +168,31 @@ class Plugin(PluginProtocol):
             lambda state: True
             )
 
+        if self.get_option("pinwheel_cut_trees", False):
+            self.world.regions["Pinwheel Forest Outside"].connect(
+                self.world.regions["Skyarrow Bridge"],
+                "Pinwheel Forest to Skyarrow Bridge with Cut",
+                lambda state: can_use_cut(state, self.world) and state.has("Dragon Skull", self.world.player)
+            )
+            self.world.regions["Skyarrow Bridge"].connect(
+                self.world.regions["Pinwheel Forest Outside"],
+                "Skyarrow Bridge to Pinwheel Forest with Cut",
+                lambda state: state.has("Dragon Skull", self.world.player) and can_use_cut(state, self.world)
+            )
+            self.world.get_entrance("Skyarrow Bridge to Pinwheel Forest West").access_rule = lambda state: (
+                state.has("Dragon Skull", self.world.player) and state.has("Loot Sack", self.world.player)
+                and (
+                    can_use_cut(state, self.world) or
+                    state.can_reach_region("Nacrene City", self.world.player)
+                    )
+                )
+            self.world.get_entrance("Pinwheel Forest east").access_rule = lambda state: (
+                state.can_reach_region("Nimbasa City", self.world.player)
+                and state.has("Loot Sack", self.world.player)
+                and state.can_reach_region("Nacrene City", self.world.player)
+            )
+            self.world.get_entrance("Pinwheel Forest West to Pinwheel Forest Outside").access_rule = lambda state: True
+
         if self.get_option("add_rock_smash", False):
             self.world.rock_smash_species = set(name for name, data in moveset_table.items() if "TM94" in data.tm_hm_moves)
             def can_use_rock_smash(state: CollectionState, world: "PokemonBWWorld") -> bool:
