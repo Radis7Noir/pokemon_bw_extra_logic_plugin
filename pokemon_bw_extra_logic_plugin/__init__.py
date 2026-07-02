@@ -38,13 +38,23 @@ class Plugin(PluginProtocol):
                 loaded_file = pkgutil.get_data(__name__, f"files/a057/{i:03d}")
                 narc_file = self.get_from_narc("a/0/5/7", i)
                 self.otpp_patch_array(narc_file, loaded_file)
-            for i in [21, 67, 280, 353, 356, 385]:
+            for i in [21, 67, 163, 280, 353, 356, 385]:
                 loaded_file = pkgutil.get_data(__name__, f"files/a003/{i:03d}")
                 narc_file = self.get_from_narc("a/0/0/3", i)
                 self.otpp_patch_array(narc_file, loaded_file)
-            for i in [16, 62, 154, 155, 321]:
+            for i in [16, 62, 154, 321]:
                 loaded_file = pkgutil.get_data(__name__, f"files/a125/{i:03d}")
                 narc_file = self.get_from_narc("a/1/2/5", i)
+                self.otpp_patch_array(narc_file, loaded_file)
+
+            if not self.get_option("pinwheel_cut_trees", False):
+                loaded_file = pkgutil.get_data(__name__, f"files/a125/155")
+                narc_file = self.get_from_narc("a/0/5/7", 867)
+                self.otpp_patch_array(narc_file, loaded_file)
+
+            if self.get_option("pinwheel_cut_trees", False):
+                loaded_file = pkgutil.get_data(__name__, f"files/a125/pinwheel_cut_trees/155_cut_trees")
+                narc_file = self.get_from_narc("a/0/5/7", 867)
                 self.otpp_patch_array(narc_file, loaded_file)
 
             if not self.get_option("hm_with_badges", False):
