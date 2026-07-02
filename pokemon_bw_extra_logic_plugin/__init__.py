@@ -302,7 +302,6 @@ class Plugin(PluginProtocol):
                     item_pool[i] = self.new_item("S.S. Ticket", ItemClassification.progression)
                     break
 
-
 # Just run this python script and it will pack this plugin into an apworld file for you.
 # Note that any file or folder that contains "_temp" in its name will be ignored and the archipelago.json that's
 # bundled will be overwritten.
