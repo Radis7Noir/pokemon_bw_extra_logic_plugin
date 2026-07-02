@@ -49,12 +49,12 @@ class Plugin(PluginProtocol):
 
             if not self.get_option("pinwheel_cut_trees", False):
                 loaded_file = pkgutil.get_data(__name__, f"files/a125/155")
-                narc_file = self.get_from_narc("a/0/5/7", 867)
+                narc_file = self.get_from_narc("a/1/2/5", 155)
                 self.otpp_patch_array(narc_file, loaded_file)
 
             if self.get_option("pinwheel_cut_trees", False):
                 loaded_file = pkgutil.get_data(__name__, f"files/a125/pinwheel_cut_trees/155_cut_trees")
-                narc_file = self.get_from_narc("a/0/5/7", 867)
+                narc_file = self.get_from_narc("a/1/2/5", 155)
                 self.otpp_patch_array(narc_file, loaded_file)
 
             if not self.get_option("hm_with_badges", False):
