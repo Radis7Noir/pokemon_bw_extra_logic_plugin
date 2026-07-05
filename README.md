@@ -1,7 +1,7 @@
 # Pokémon BW Extra Logic APworld Plugin
 An optional APworld that adds new logic to the main BW APworld
 
-This plugin is currently only comptabile with v0.3.35 of the main BW APworld.
+This plugin is currently only comptabile with v0.3.35+ of the main BW APworld.
 
 ## Important Note
 - The host MUST have the plugin installed before generating to ensure the logic of the main APworld is properly updated
