@@ -2,6 +2,26 @@
 
 Changelog
 
+## v3
+* Added more missing connections between regions to make full use of the plugin options
+* Added `move_strength_boulders`
+  * Moves the north boulder on Route 13 to create a new path to reach the Giant Chasm
+  * Moves the south boulder in the Dreamyard to create a new path to reach the Basement
+  * Moves the boulder in Dragonspiral Tower 2F and adds another one to make Strength required to reach the next floors
+* Added `move_strength_boulders_vi_road`
+  * Moves the boulder on Victory Road 4F Left Cavern to make Strength required to reach Pokémon League
+  * This option can only be enabled if `move_strength_boulders` is set to true
+* Added `extra_cut_trees`
+  * Puts the Loot Sack roadblock NPCs to the west side of Pinwheel Forest and adds cut trees in the middle path, making it possible to leave the Forest with Cut and the Dragon Skull
+  * A Plasma grunt NPC will block the East path until Team Plasma leaves the Forest
+  * A Petilil NPC will appear near the north exit after defeating Team Plasma to teleport the player back to the south entrance to avoid softlocks
+* Added `extra_cut_trees_kyurem`
+  * Adds cut trees just before the small pond in the Giant Chasm crater
+  * This option can only be enabled if `extra_cut_trees` is set to true
+* Added `add_rock_smash_musharna`
+  * Adds breakable rocks on the northen side of the Dreamyard Basement
+  * This option can only be enabled if `add_rock_smash` is set to true
+
 ## v2
 * Added a missing connection between Challenger's Cave and Route 9
 * Added a missing connection between Wellspring Cave and Route 3

@@ -24,6 +24,23 @@ This plugin is currently only comptabile with v0.3.35 of the main BW APworld.
   * HM05 Waterfall require the Freeze Badge
   * HM06 Dive require the Legend Badge
   * TM94 Rock Smash require the Basic Badge if `add_rock_smash` is on
+- `move_strength_boulders` moves
+  * The north boulder on Route 13 to create a new path to reach the Giant Chasm
+  * The south boulder in the Dreamyard to create a new path to reach the Basement
+  * The boulder in Dragonspiral Tower 2F and adds another one to make Strength required to reach the next floors
+- `move_strength_boulders_vi_road`
+  * Moves the boulder on Victory Road 4F Left Cavern to make Strength required to reach Pokémon League
+  * Requires `move_strength_boulders` to be set to true
+-`extra_cut_trees`
+  * Puts the Loot Sack roadblock NPCs to the west side of Pinwheel Forest and adds cut trees in the middle path, making it possible to leave the Forest with Cut and the Dragon Skull
+  * A Plasma grunt NPC will block the East path until Team Plasma leaves the Forest
+  * A Petilil NPC will appear near the north exit after defeating Team Plasma to teleport the player back to the south entrance to avoid softlocks
+- `extra_cut_trees_kyurem`
+  * Adds cut trees just before the small pond in the Giant Chasm crater
+  * This option can only be enabled if `extra_cut_trees` is set to true
+- `add_rock_smash_musharna`
+  * Adds breakable rocks on the northen side of the Dreamyard Basement
+  * This option can only be enabled if `add_rock_smash` is set to true
 
 ## Instructions
 - Download the latest release of the plugin APworld

@@ -25,7 +25,7 @@ class Plugin(PluginProtocol):
 
     name = "Pokemon BW Extra Logic Plugin"
     domain = "extra_logic"
-    version = "1.2.0"
+    version = "1.3.0"
     author = "RadisNoir"
 
 
@@ -47,13 +47,13 @@ class Plugin(PluginProtocol):
                 narc_file = self.get_from_narc("a/1/2/5", i)
                 self.otpp_patch_array(narc_file, loaded_file)
 
-            if not self.get_option("pinwheel_cut_trees", False):
+            if not self.get_option("extra_cut_trees", False):
                 loaded_file = pkgutil.get_data(__name__, f"files/a125/155")
                 narc_file = self.get_from_narc("a/1/2/5", 155)
                 self.otpp_patch_array(narc_file, loaded_file)
 
-            if self.get_option("pinwheel_cut_trees", False):
-                loaded_file = pkgutil.get_data(__name__, f"files/a125/pinwheel_cut_trees/155_cut_trees")
+            if self.get_option("extra_cut_trees", False):
+                loaded_file = pkgutil.get_data(__name__, f"files/a125/extra_cut_trees/155_cut_trees")
                 narc_file = self.get_from_narc("a/1/2/5", 155)
                 self.otpp_patch_array(narc_file, loaded_file)
 
@@ -72,10 +72,23 @@ class Plugin(PluginProtocol):
                 loaded_file = pkgutil.get_data(__name__, f"files/a008/add_rock_smash/{i:03d}")
                 narc_file = self.get_from_narc("a/0/0/8", i)
                 self.otpp_patch_array(narc_file, loaded_file)
-            for i in [324, 348, 353, 370]:
+            for i in [324, 348, 353]:
                 loaded_file = pkgutil.get_data(__name__, f"files/a125/add_rock_smash/{i:03d}")
                 narc_file = self.get_from_narc("a/1/2/5", i)
                 self.otpp_patch_array(narc_file, loaded_file)
+            if not self.get_option("move_strength_boulders", False):
+                loaded_file = pkgutil.get_data(__name__, f"files/a125/370_rock")
+                narc_file = self.get_from_narc("a/1/2/5", 370)
+                self.otpp_patch_array(narc_file, loaded_file)
+            if self.get_option("add_rock_smash_musharna", False):
+                loaded_file = pkgutil.get_data(__name__, f"files/a125/add_rock_smash/153")
+                narc_file = self.get_from_narc("a/1/2/5", 153)
+                self.otpp_patch_array(narc_file, loaded_file)
+
+        if self.get_option("extra_cut_trees", False) and self.get_option("extra_cut_trees_kyurem", False):
+            loaded_file = pkgutil.get_data(__name__, f"files/a125/extra_cut_trees/232")
+            narc_file = self.get_from_narc("a/1/2/5", 232)
+            self.otpp_patch_array(narc_file, loaded_file)
 
         if self.get_option("add_ss_ticket", False):
             for i in [243, 246, 451]:
@@ -91,6 +104,24 @@ class Plugin(PluginProtocol):
                 narc_file = self.get_from_narc("a/1/2/5", i)
                 self.otpp_patch_array(narc_file, loaded_file)
 
+        if self.get_option("move_strength_boulders", False):
+            for i in [152]:
+                loaded_file = pkgutil.get_data(__name__, f"files/a125/move_strength_boulders/{i:03d}")
+                narc_file = self.get_from_narc("a/1/2/5", i)
+                self.otpp_patch_array(narc_file, loaded_file)
+            if self.get_option("move_strength_boulders_vi_road", False):
+                loaded_file = pkgutil.get_data(__name__, f"files/a125/move_strength_boulders/224")
+                narc_file = self.get_from_narc("a/1/2/5", 224)
+                self.otpp_patch_array(narc_file, loaded_file)
+            if not self.get_option("add_rock_smash", False):
+                loaded_file = pkgutil.get_data(__name__, f"files/a125/370_boulder")
+                narc_file = self.get_from_narc("a/1/2/5", 370)
+                self.otpp_patch_array(narc_file, loaded_file)
+ 
+        if self.get_option("add_rock_smash", False) and self.get_option("move_strength_boulders", False):
+            loaded_file = pkgutil.get_data(__name__, f"files/a125/370_rock_boulder")
+            narc_file = self.get_from_narc("a/1/2/5", 370)
+            self.otpp_patch_array(narc_file, loaded_file)
 
     # This is called after generating all regions, regions connections, locations, and events
     def create_regions(self, catchable_species_data: dict[str, "SpeciesData"]):
@@ -176,9 +207,20 @@ class Plugin(PluginProtocol):
             self.world.regions["Castelia City"],
             "Liberty Garden to Castelia City Ferry",
             lambda state: True
-            )
+        )
+        self.world.regions["Dreamyard South"].connect(
+            self.world.regions["Dreamyard Basement"],
+            "Dreamyard South to Dreamyard Basement",
+            lambda state: True
+        )
+        self.world.regions["Dreamyard Basement"].connect(
+            self.world.regions["Dreamyard Entrance"],
+            "Dreamyard Basement to Dreamyard entrance",
+            lambda state: state.has("Basement Key", self.world.player)
+        )
 
-        if self.get_option("pinwheel_cut_trees", False):
+
+        if self.get_option("extra_cut_trees", False):
             self.world.regions["Pinwheel Forest Outside"].connect(
                 self.world.regions["Skyarrow Bridge"],
                 "Pinwheel Forest to Skyarrow Bridge with Cut",
@@ -194,14 +236,59 @@ class Plugin(PluginProtocol):
                 and (
                     can_use_cut(state, self.world) or
                     state.can_reach_region("Nacrene City", self.world.player)
-                    )
                 )
+            )
             self.world.get_entrance("Pinwheel Forest east").access_rule = lambda state: (
                 state.can_reach_region("Nimbasa City", self.world.player)
                 and state.has("Loot Sack", self.world.player)
                 and state.can_reach_region("Nacrene City", self.world.player)
             )
             self.world.get_entrance("Pinwheel Forest West to Pinwheel Forest Outside").access_rule = lambda state: True
+
+            if self.get_option("extra_cut_trees_kyurem", False):
+                self.world.get_entrance("Giant Chasm crater north east cave entrance").access_rule = lambda state: can_use_cut(state, self.world)
+
+
+        if self.get_option("move_strength_boulders", False):
+            self.world.get_entrance("Route 13 north east").access_rule = lambda state: can_use_surf_or_strength(state, self.world)
+
+            self.world.regions["Dreamyard Entrance"].connect(
+                self.world.regions["Dreamyard South"],
+                "Dreamyard Entrance to Dreamyard South",
+                lambda state: can_use_strength(state, self.world)
+            )
+
+            self.world.get_location("Dragonspiral Tower - 2F north east item").access_rule = lambda state: can_use_strength(state, self.world)
+            self.world.get_location("Dragonspiral Tower - 2F item on pillar").access_rule = lambda state: can_use_strength(state, self.world)
+            self.world.get_location("Dragonspiral Tower - 3F item").access_rule = lambda state: can_use_strength(state, self.world)
+            self.world.get_location("Dragonspiral Tower - 4F item").access_rule = lambda state: can_use_strength(state, self.world)
+            self.world.get_location("Dragonspiral Tower - 5F item #1").access_rule = lambda state: can_use_strength(state, self.world)
+            self.world.get_location("Dragonspiral Tower - 5F item #2").access_rule = lambda state: can_use_strength(state, self.world)
+            self.world.get_location("Dragonspiral Tower - 5F item #3").access_rule = lambda state: can_use_strength(state, self.world)
+            self.world.get_location("Dragonspiral Tower - 6F item").access_rule = lambda state: can_use_strength(state, self.world)
+
+            if self.get_option("move_strength_boulders_vi_road", False):
+                self.world.get_entrance("Victory Road north").access_rule = lambda state: can_use_strength(state, self.world)
+                self.world.get_location("Victory Road Outside - Item #2").access_rule = lambda state: can_use_strength(state, self.world)
+                self.world.get_location("Victory Road Outside - Item #3").access_rule = lambda state: can_use_strength(state, self.world)
+                self.world.get_location("Victory Road Outside - Item #4").access_rule = lambda state: can_use_strength(state, self.world)
+                self.world.get_location("Victory Road Outside - Item #6").access_rule = lambda state: can_use_strength(state, self.world)
+                self.world.get_location("Victory Road 3F - Western cavern item").access_rule = lambda state: can_use_strength(state, self.world)
+                self.world.get_location("Victory Road 4F - Western cavern item").access_rule = lambda state: can_use_strength(state, self.world)
+                self.world.get_location("Victory Road 1F - Western cavern hidden item #1").access_rule = lambda state: can_use_strength(state, self.world)
+                self.world.get_location("Victory Road 1F - Western cavern hidden item #2").access_rule = lambda state: can_use_strength(state, self.world)
+                self.world.get_location("Victory Road 4F - Western cavern hidden item").access_rule = lambda state: can_use_strength(state, self.world)
+                self.world.get_location("Victory Road 4F - Eastern cavern hidden item #1").access_rule = lambda state: can_use_strength(state, self.world)
+                self.world.get_location("Victory Road 4F - Eastern cavern hidden item #2").access_rule = lambda state: can_use_strength(state, self.world)
+                self.world.get_entrance("Victory Road (5F Cave) - Grass").access_rule = lambda state: can_use_strength(state, self.world)
+                self.world.get_entrance("Victory Road (5F Cave) - Rustling Grass").access_rule = lambda state: can_use_strength(state, self.world) and state.has("Trio Badge", self.world.player)
+                self.world.get_entrance("Victory Road (6F Cave) - Grass").access_rule = lambda state: can_use_strength(state, self.world)
+                self.world.get_entrance("Victory Road (6F Cave) - Rustling Grass").access_rule = lambda state: can_use_strength(state, self.world) and state.has("Trio Badge", self.world.player)
+                self.world.get_entrance("Victory Road (4F Right Cave) - Grass").access_rule = lambda state: can_use_strength(state, self.world)
+                self.world.get_entrance("Victory Road (4F Right Cave) - Rustling Grass").access_rule = lambda state: can_use_strength(state, self.world) and state.has("Trio Badge", self.world.player)
+                self.world.get_entrance("Victory Road (7F Cave) - Grass").access_rule = lambda state: can_use_strength(state, self.world)
+                self.world.get_entrance("Victory Road (7F Cave) - Rustling Grass").access_rule = lambda state: can_use_strength(state, self.world) and state.has("Trio Badge", self.world.player)
+
 
         if self.get_option("add_rock_smash", False):
             self.world.rock_smash_species = set(name for name, data in moveset_table.items() if "TM94" in data.tm_hm_moves)
@@ -222,19 +309,19 @@ class Plugin(PluginProtocol):
             )
 
             region = self.world.regions["Wellspring Cave Entrance"]
-            location = PokemonBWLocation(self.world.player, "Rock Smash static Wellspring Cave", None, region)
+            location = PokemonBWLocation(self.world.player, "Rock Smash Static Wellspring Cave", None, region)
             location.place_locked_item(PokemonBWItem("Dwebble", ItemClassification.progression, None, self.world.player))
             location.access_rule = lambda state: can_use_rock_smash(state, self.world)
             region.locations.append(location)
 
             region = self.world.regions["Challenger's Cave"]
-            location = PokemonBWLocation(self.world.player, "Rock Smash static Challenger's Cave", None, region)
+            location = PokemonBWLocation(self.world.player, "Rock Smash Static Challenger's Cave", None, region)
             location.place_locked_item(PokemonBWItem("Dwebble", ItemClassification.progression, None, self.world.player))
             location.access_rule = lambda state: can_use_rock_smash(state, self.world) and dark_cave(state, self.world)
             region.locations.append(location)
 
             region = self.world.regions["Route 13"]
-            location = PokemonBWLocation(self.world.player, "Rock Smash static Route 13", None, region)
+            location = PokemonBWLocation(self.world.player, "Rock Smash Static Route 13", None, region)
             location.place_locked_item(PokemonBWItem("Dwebble", ItemClassification.progression, None, self.world.player))
             location.access_rule = lambda state: can_use_rock_smash(state, self.world)
             region.locations.append(location)
@@ -245,6 +332,18 @@ class Plugin(PluginProtocol):
 
             self.world.get_entrance("Route 13 south gate").access_rule = lambda state: can_use_rock_smash(state, self.world)
             self.world.get_entrance("Undella Town north gate").access_rule = lambda state: can_use_rock_smash(state, self.world)
+
+            if self.get_option("add_rock_smash_musharna", False):
+                self.world.get_location("Dreamyard Static Encounter").access_rule = lambda state: can_use_rock_smash(state, self.world)
+                self.world.get_location("Dreamyard Basement - North west item").access_rule = lambda state: can_use_rock_smash(state, self.world)
+                self.world.get_entrance("Dreamyard (Basement) - Dark Grass").access_rule = lambda state: can_use_rock_smash(state, self.world)
+
+                region = self.world.regions["Dreamyard Basement"]
+                location = PokemonBWLocation(self.world.player, "Rock Smash Static Dreamyard Basement", None, region)
+                location.place_locked_item(PokemonBWItem("Dwebble", ItemClassification.progression, None, self.world.player))
+                location.access_rule = lambda state: can_use_rock_smash(state, self.world)
+                region.locations.append(location)
+
 
         if self.get_option("hm_with_badges", False):
             def cut_with_trio_badge(old_rule: "ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:
@@ -278,6 +377,7 @@ class Plugin(PluginProtocol):
                     return old_rule(state, world) and state.has("Basic Badge", world.player)
                 self.modify_rule(can_use_rock_smash, rock_smash_with_basic_badge)
 
+
         if self.get_option("add_ss_ticket", False):
             self.world.regions["P2 Laboratory"].connect(
                 self.world.regions["Liberty Garden"],
@@ -299,6 +399,7 @@ class Plugin(PluginProtocol):
                 "Undella Town to Liberty Garden Ferry",
                 lambda state: state.has("S.S. Ticket", self.world.player) and state.has("Liberty Pass", self.world.player)
             )
+
 
     # This is called after generating the item pool of a world and placing all locked items (e.g. gym badges in gym rewards)
     def create_items(self, item_pool: list["PokemonBWItem"]):
