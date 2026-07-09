@@ -369,7 +369,7 @@ class Plugin(PluginProtocol):
             self.modify_rule(can_use_dive, dive_with_legend_badge)
 
             def surf_or_strength_with_badge(old_rule: "ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:
-                return surf_with_quake_badge(old_rule, state, world) or strength_with_bolt_badge(old_rule, state, world)
+                return can_use_surf(state, world) or can_use_strength(state, world)
             self.modify_rule(can_use_surf_or_strength, surf_or_strength_with_badge)
 
             if self.get_option("add_rock_smash", False):
