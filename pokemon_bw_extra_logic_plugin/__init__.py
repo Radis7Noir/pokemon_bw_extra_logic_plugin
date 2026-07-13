@@ -105,7 +105,7 @@ class Plugin(PluginProtocol):
                 self.otpp_patch_array(narc_file, loaded_file)
 
         if self.get_option("move_strength_boulders", False):
-            for i in [152]:
+            for i in [152, 208]:
                 loaded_file = pkgutil.get_data(__name__, f"files/a125/move_strength_boulders/{i:03d}")
                 narc_file = self.get_from_narc("a/1/2/5", i)
                 self.otpp_patch_array(narc_file, loaded_file)
