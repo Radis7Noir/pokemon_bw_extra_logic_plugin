@@ -2,6 +2,13 @@
 
 Changelog
 
+## v4
+* Fixed the missing boulder change in Dragonspiral Tower 2F with `move_strength_boulders`
+* Rewrote some parts of the plugin files for v0.3.37 of the main APworld (@Slimey)
+* The plasma grunt in Pinwheel Forest East now disappears after defeating Team Plasma without reloading the map
+* Added `add_pass`
+  * Adds a plane connection between Mistralton City and Village Bridge that requires the (Maglev) Pass
+
 ## v3
 * Added more missing connections between regions to make full use of the plugin options
 * Added `move_strength_boulders`

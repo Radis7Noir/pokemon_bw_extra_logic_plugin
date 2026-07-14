@@ -17,6 +17,8 @@ This plugin is currently only comptabile with v0.3.35+ of the main BW APworld.
   * Adds a boat connection between P2 Laboratory and Liberty Garden that requires the Liberty Pass
   * Adds a second ferry that sails between Liberty Garden and Undella Town, requiring the Liberty Pass and the S.S. Ticket
     * The Victini event must be cleared to use the black ferry from Liberty Garden
+- `add_pass` puts the Pass in the pool and
+  * Adds a plane connection between Mistralton City and Village Bridge that requires the Pass
 - `hm_with_badges` makes
   * HM01 Cut require the Trio Badge
   * HM03 Surf require the Quake Badge
@@ -51,7 +53,13 @@ This plugin is currently only comptabile with v0.3.35+ of the main BW APworld.
   plugin_options:
     extra_logic:
       add_rock_smash: true
+      add_rock_smash_musharna: true
       add_ss_ticket: true
+      add_pass: true
+      extra_cut_trees: true
+      extra_cut_trees_kyurem: true
+      move_strength_boulders: true
+      move_strength_boulders_vi_road: true
       hm_with_badges: true
 ```
 - Set the options to true or false as seen fit and generate the seed as usual

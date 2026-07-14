@@ -2,7 +2,7 @@ from random import Random
 from typing import Callable, Any, ClassVar, TYPE_CHECKING
 
 try:
-    from BaseClasses import CollectionState, ItemClassification
+    from BaseClasses import CollectionState, ItemClassification, CollectionRule
     if TYPE_CHECKING:
         from worlds.pokemon_bw.ndspy.rom import NintendoDSRom
         from worlds.pokemon_bw.ndspy.narc import NARC
@@ -54,3 +54,6 @@ class PluginProtocol:
     def modify_rule(old: "ExtendedRule", new: Callable[["ExtendedRule", "CollectionState", "PokemonBWWorld"], bool]): ...
 
     def new_item(self, name: str, classification: "ItemClassification" = None): ...
+
+    def new_event(self, location: str, item: str, region: str, *,
+                  collection_rule: "CollectionRule" = None, extended_rule: "ExtendedRule" = None) -> None: ...

@@ -25,20 +25,19 @@ class Plugin(PluginProtocol):
 
     name = "Pokemon BW Extra Logic Plugin"
     domain = "extra_logic"
-    version = "1.3.0"
+    version = "1.4.0"
     author = "RadisNoir"
-
 
     # This is called during the patching process, after the main apworld did all its standard modifications to the rom.
     def patch(self):
         if DEV: return
 
         if not any(p.name == "Pokemon BW QoL Plugin" for p in self.all_plugins):
-            for i in [12, 32, 308, 310, 642, 648, 652, 706, 866]:
+            for i in [12, 32, 214, 308, 310, 510, 642, 648, 652, 706, 866]:
                 loaded_file = pkgutil.get_data(__name__, f"files/a057/{i:03d}")
                 narc_file = self.get_from_narc("a/0/5/7", i)
                 self.otpp_patch_array(narc_file, loaded_file)
-            for i in [21, 67, 163, 280, 353, 356, 385]:
+            for i in [21, 67, 112, 163, 271, 280, 353, 356, 385]:
                 loaded_file = pkgutil.get_data(__name__, f"files/a003/{i:03d}")
                 narc_file = self.get_from_narc("a/0/0/3", i)
                 self.otpp_patch_array(narc_file, loaded_file)
@@ -123,14 +122,48 @@ class Plugin(PluginProtocol):
             narc_file = self.get_from_narc("a/1/2/5", 370)
             self.otpp_patch_array(narc_file, loaded_file)
 
+        if self.get_option("add_pass", False):
+            for i in [107, 255]:
+                loaded_file = pkgutil.get_data(__name__, f"files/a125/add_pass/{i:03d}")
+                narc_file = self.get_from_narc("a/1/2/5", i)
+                self.otpp_patch_array(narc_file, loaded_file)
+            for i in [188, 190, 191, 193]:
+                loaded_file = pkgutil.get_data(__name__, f"files/a008/add_pass/{i:03d}")
+                narc_file = self.get_from_narc("a/0/0/8", i)
+                self.otpp_patch_array(narc_file, loaded_file)
+
+    @classmethod
+    def stage_init(cls):
+        from worlds.pokemon_bw.data.locations.rules import can_use_surf, can_use_waterfall, can_use_dive, can_use_cut, can_use_strength
+
+        def cut_with_trio_badge(old_rule: "ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:
+            return old_rule(state, world) and (state.has("Trio Badge", world.player) or not world.hm_with_badges)
+        cls.modify_rule(can_use_cut, cut_with_trio_badge)
+
+        def surf_with_quake_badge(old_rule: "ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:
+            return old_rule(state, world) and (state.has("Quake Badge", world.player) or not world.hm_with_badges)
+        cls.modify_rule(can_use_surf, surf_with_quake_badge)
+
+        def strength_with_bolt_badge(old_rule: "ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:
+            return old_rule(state, world) and (state.has("Bolt Badge", world.player) or not world.hm_with_badges)
+        cls.modify_rule(can_use_strength, strength_with_bolt_badge)
+
+        def waterfall_with_freeze_badge(old_rule: "ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:
+            return old_rule(state, world) and (state.has("Freeze Badge", world.player) or not world.hm_with_badges)
+        cls.modify_rule(can_use_waterfall, waterfall_with_freeze_badge)
+
+        def dive_with_legend_badge(old_rule: "ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:
+            return old_rule(state, world) and (state.has("Legend Badge", world.player) or not world.hm_with_badges)
+        cls.modify_rule(can_use_dive, dive_with_legend_badge)
+
     # This is called after generating all regions, regions connections, locations, and events
     def create_regions(self, catchable_species_data: dict[str, "SpeciesData"]):
-        from worlds.pokemon_bw.items import PokemonBWItem
-        from worlds.pokemon_bw.locations import PokemonBWLocation
-        from worlds.pokemon_bw.data.items import tm_hm, classification
         from worlds.pokemon_bw.data.pokemon.movesets import table as moveset_table
-        from worlds.pokemon_bw.data.locations.rules import can_use_surf, can_use_waterfall, can_use_dive, can_use_cut, can_use_strength, can_use_surf_or_strength, dark_cave, challengers_cave
+        from worlds.pokemon_bw.data.locations.rules import (can_use_cut, can_use_strength, can_use_surf_or_strength,
+                                                            dark_cave, challengers_cave)
         if DEV: return
+
+        self.world.hm_with_badges = self.get_option("hm_with_badges", False)
 
         # Missing Connections
         self.world.regions["Route 3"].connect(
@@ -289,13 +322,12 @@ class Plugin(PluginProtocol):
                 self.world.get_entrance("Victory Road (7F Cave) - Grass").access_rule = lambda state: can_use_strength(state, self.world)
                 self.world.get_entrance("Victory Road (7F Cave) - Rustling Grass").access_rule = lambda state: can_use_strength(state, self.world) and state.has("Trio Badge", self.world.player)
 
-
         if self.get_option("add_rock_smash", False):
             self.world.rock_smash_species = set(name for name, data in moveset_table.items() if "TM94" in data.tm_hm_moves)
             def can_use_rock_smash(state: CollectionState, world: "PokemonBWWorld") -> bool:
-                return state.has("TM94 Rock Smash", world.player) and state.has_any(world.rock_smash_species, world.player)
-
-            tm_hm.tm["TM94 Rock Smash"] = tm_hm.tm["TM94 Rock Smash"]._replace(classification=classification.always_progression)  # This will make TM94 progression for all BW players in the multiworld
+                return (state.has("TM94 Rock Smash", world.player)
+                        and state.has_any(world.rock_smash_species, world.player)
+                        and (state.has("Basic Badge", world.player) or not world.hm_with_badges))
 
             self.world.regions["Wellspring Cave Entrance"].connect(
                 self.world.regions["Challenger's Cave"],
@@ -308,23 +340,18 @@ class Plugin(PluginProtocol):
                 lambda state: can_use_rock_smash(state, self.world) and dark_cave(state, self.world)
             )
 
-            region = self.world.regions["Wellspring Cave Entrance"]
-            location = PokemonBWLocation(self.world.player, "Rock Smash Static Wellspring Cave", None, region)
-            location.place_locked_item(PokemonBWItem("Dwebble", ItemClassification.progression, None, self.world.player))
-            location.access_rule = lambda state: can_use_rock_smash(state, self.world)
-            region.locations.append(location)
-
-            region = self.world.regions["Challenger's Cave"]
-            location = PokemonBWLocation(self.world.player, "Rock Smash Static Challenger's Cave", None, region)
-            location.place_locked_item(PokemonBWItem("Dwebble", ItemClassification.progression, None, self.world.player))
-            location.access_rule = lambda state: can_use_rock_smash(state, self.world) and dark_cave(state, self.world)
-            region.locations.append(location)
-
-            region = self.world.regions["Route 13"]
-            location = PokemonBWLocation(self.world.player, "Rock Smash Static Route 13", None, region)
-            location.place_locked_item(PokemonBWItem("Dwebble", ItemClassification.progression, None, self.world.player))
-            location.access_rule = lambda state: can_use_rock_smash(state, self.world)
-            region.locations.append(location)
+            self.new_event(
+                "Rock Smash Static Wellspring Cave", "Dwebble", "Wellspring Cave Entrance",
+                extended_rule=can_use_rock_smash
+            )
+            self.new_event(
+                "Rock Smash Static Challenger's Cave", "Dwebble", "Challenger's Cave",
+                collection_rule=lambda state: can_use_rock_smash(state, self.world) and dark_cave(state, self.world)
+            )
+            self.new_event(
+                "Rock Smash Static Route 13", "Dwebble", "Route 13",
+                extended_rule=can_use_rock_smash
+            )
 
             self.world.get_location("Wellspring Cave - 1F hidden item #1").access_rule = lambda state: can_use_rock_smash(state, self.world)
             self.world.get_location("Wellspring Cave - 1F north east item").access_rule = lambda state: can_use_rock_smash(state, self.world)
@@ -338,45 +365,10 @@ class Plugin(PluginProtocol):
                 self.world.get_location("Dreamyard Basement - North west item").access_rule = lambda state: can_use_rock_smash(state, self.world)
                 self.world.get_entrance("Dreamyard (Basement) - Dark Grass").access_rule = lambda state: can_use_rock_smash(state, self.world)
 
-                region = self.world.regions["Dreamyard Basement"]
-                location = PokemonBWLocation(self.world.player, "Rock Smash Static Dreamyard Basement", None, region)
-                location.place_locked_item(PokemonBWItem("Dwebble", ItemClassification.progression, None, self.world.player))
-                location.access_rule = lambda state: can_use_rock_smash(state, self.world)
-                region.locations.append(location)
-
-
-        if self.get_option("hm_with_badges", False):
-            def cut_with_trio_badge(old_rule: "ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:
-                return old_rule(state, world) and state.has("Trio Badge", world.player)
-            self.modify_rule(can_use_cut, cut_with_trio_badge)
-
-            def surf_with_quake_badge(old_rule: "ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:
-                return old_rule(state, world) and state.has("Quake Badge", world.player)
-            self.modify_rule(can_use_surf, surf_with_quake_badge)
-            self.modify_rule(can_use_waterfall, surf_with_quake_badge)
-            self.modify_rule(can_use_dive, surf_with_quake_badge)
-
-            def strength_with_bolt_badge(old_rule: "ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:
-                return old_rule(state, world) and state.has("Bolt Badge", world.player)
-            self.modify_rule(can_use_strength, strength_with_bolt_badge)
-
-            def waterfall_with_freeze_badge(old_rule: "ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:
-                return old_rule(state, world) and state.has("Freeze Badge", world.player)
-            self.modify_rule(can_use_waterfall, waterfall_with_freeze_badge)
-
-            def dive_with_legend_badge(old_rule: "ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:
-                return old_rule(state, world) and state.has("Legend Badge", world.player)
-            self.modify_rule(can_use_dive, dive_with_legend_badge)
-
-            def surf_or_strength_with_badge(old_rule: "ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:
-                return can_use_surf(state, world) or can_use_strength(state, world)
-            self.modify_rule(can_use_surf_or_strength, surf_or_strength_with_badge)
-
-            if self.get_option("add_rock_smash", False):
-                def rock_smash_with_basic_badge(old_rule: "ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:
-                    return old_rule(state, world) and state.has("Basic Badge", world.player)
-                self.modify_rule(can_use_rock_smash, rock_smash_with_basic_badge)
-
+                self.new_event(
+                    "Rock Smash Static Dreamyard Basement", "Dwebble", "Dreamyard Basement",
+                    extended_rule=can_use_rock_smash
+                )
 
         if self.get_option("add_ss_ticket", False):
             self.world.regions["P2 Laboratory"].connect(
@@ -400,18 +392,34 @@ class Plugin(PluginProtocol):
                 lambda state: state.has("S.S. Ticket", self.world.player) and state.has("Liberty Pass", self.world.player)
             )
 
+        if self.get_option("add_pass", False):
+            self.world.regions["Mistralton City"].connect(
+                self.world.regions["Village Bridge"],
+                "Mistralton City to Village Bridge with Pass",
+                lambda state: can_use_cut(state, self.world) and state.has("Maglev Pass", self.world.player)
+            )
+            self.world.regions["Village Bridge"].connect(
+                self.world.regions["Mistralton City"],
+                "Village Bridge to Mistralton City with Pass",
+                lambda state: can_use_cut(state, self.world) and state.has("Maglev Pass", self.world.player)
+            )
 
-    # This is called after generating the item pool of a world and placing all locked items (e.g. gym badges in gym rewards)
-    def create_items(self, item_pool: list["PokemonBWItem"]):
+    # This is called after generating the item pool of a world, but before placing all locked items (e.g. gym badges in gym rewards)
+    def create_items_main_only(self, item_pool: list["PokemonBWItem"]):
         if DEV: return
+
+        if self.get_option("add_rock_smash", False):
+            for item in item_pool:
+                if item.name == "TM94 Rock Smash":
+                    item.classification = ItemClassification.progression
 
         # Add S.S. Ticket
         if self.get_option("add_ss_ticket", False):
-            for i in range(len(item_pool)):
-                item = item_pool[i]
-                if item.classification == ItemClassification.filler:
-                    item_pool[i] = self.new_item("S.S. Ticket", ItemClassification.progression)
-                    break
+            item_pool.append(self.new_item("S.S. Ticket", ItemClassification.progression))
+        
+        # Add Pass
+        if self.get_option("add_pass", False):
+            item_pool.append(self.new_item("Maglev Pass", ItemClassification.progression))
 
 # Just run this python script and it will pack this plugin into an apworld file for you.
 # Note that any file or folder that contains "_temp" in its name will be ignored and the archipelago.json that's
