@@ -2,6 +2,9 @@
 
 Changelog
 
+## v5
+* Fixed the logic of the plane connection incorrectly checking for Cut and the Pass instead of just the Pass
+
 ## v4
 * Fixed the missing boulder change in Dragonspiral Tower 2F with `move_strength_boulders`
 * Rewrote some parts of the plugin files for v0.3.37 of the main APworld (@Slimey)

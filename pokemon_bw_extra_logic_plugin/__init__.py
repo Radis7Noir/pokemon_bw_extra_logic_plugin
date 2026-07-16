@@ -25,7 +25,7 @@ class Plugin(PluginProtocol):
 
     name = "Pokemon BW Extra Logic Plugin"
     domain = "extra_logic"
-    version = "1.4.0"
+    version = "1.5.0"
     author = "RadisNoir"
 
     # This is called during the patching process, after the main apworld did all its standard modifications to the rom.
@@ -396,12 +396,12 @@ class Plugin(PluginProtocol):
             self.world.regions["Mistralton City"].connect(
                 self.world.regions["Village Bridge"],
                 "Mistralton City to Village Bridge with Pass",
-                lambda state: can_use_cut(state, self.world) and state.has("Maglev Pass", self.world.player)
+                lambda state: state.has("Maglev Pass", self.world.player)
             )
             self.world.regions["Village Bridge"].connect(
                 self.world.regions["Mistralton City"],
                 "Village Bridge to Mistralton City with Pass",
-                lambda state: can_use_cut(state, self.world) and state.has("Maglev Pass", self.world.player)
+                lambda state: state.has("Maglev Pass", self.world.player)
             )
 
     # This is called after generating the item pool of a world, but before placing all locked items (e.g. gym badges in gym rewards)
