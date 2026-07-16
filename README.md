@@ -33,7 +33,7 @@ This plugin is currently only comptabile with v0.3.35+ of the main BW APworld.
 - `move_strength_boulders_vi_road`
   * Moves the boulder on Victory Road 4F Left Cavern to make Strength required to reach Pokémon League
   * Requires `move_strength_boulders` to be set to true
--`extra_cut_trees`
+- `extra_cut_trees`
   * Puts the Loot Sack roadblock NPCs to the west side of Pinwheel Forest and adds cut trees in the middle path, making it possible to leave the Forest with Cut and the Dragon Skull
   * A Plasma grunt NPC will block the East path until Team Plasma leaves the Forest
   * A Petilil NPC will appear near the north exit after defeating Team Plasma to teleport the player back to the south entrance to avoid softlocks
