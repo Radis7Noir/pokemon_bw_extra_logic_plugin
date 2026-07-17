@@ -303,7 +303,7 @@ class Plugin(PluginProtocol):
     # This is called after generating all regions, regions connections, locations, and events
     def create_regions(self, catchable_species_data: dict[str, "SpeciesData"]):
         from worlds.pokemon_bw.data.pokemon.movesets import table as moveset_table
-        from worlds.pokemon_bw.data.locations.rules import (can_use_cut, can_use_surf, can_use_strength, can_use_surf_or_strength,
+        from worlds.pokemon_bw.data.locations.rules import (can_use_cut, can_use_surf, can_use_dive, can_use_strength, can_use_surf_or_strength,
                                                             dark_cave, challengers_cave)
         if DEV: return
 
