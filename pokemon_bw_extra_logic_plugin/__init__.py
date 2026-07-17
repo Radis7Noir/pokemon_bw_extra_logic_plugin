@@ -25,7 +25,7 @@ class Plugin(PluginProtocol):
 
     name = "Pokemon BW Extra Logic Plugin"
     domain = "extra_logic"
-    version = "1.5.0"
+    version = "1.6.0"
     author = "RadisNoir"
 
     # This is called during the patching process, after the main apworld did all its standard modifications to the rom.
@@ -140,9 +140,8 @@ class Plugin(PluginProtocol):
         dark_areas_narc += (7).to_bytes(2, "little")
         dark_areas_narc += b'\1\0' if "Striaton Gym" in dark_areas_list else b'\0\0'
 
-        for i in [18, 19]:
-            dark_areas_narc += i.to_bytes(2, "little")
-            dark_areas_narc += b'\1\0' if "Nacrene Gym" in dark_areas_list else b'\0\0'
+        dark_areas_narc += (18).to_bytes(2, "little")
+        dark_areas_narc += b'\1\0' if "Nacrene Gym" in dark_areas_list else b'\0\0'
 
         dark_areas_narc += (29).to_bytes(2, "little")
         dark_areas_narc += b'\1\0' if "Castelia Gym" in dark_areas_list else b'\0\0'
@@ -589,32 +588,39 @@ class Plugin(PluginProtocol):
             self.world.get_location("Striaton Gym - TM reward").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_location("Striaton City - TM from Fennel").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_location("Striaton City - Item from Amanita").access_rule = lambda state: dark_cave(state, self.world)
+
         if "Nacrene Gym" in self.world.dark_areas:
             self.world.get_location("Nacrene Gym - Gym guide item").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_location("Nacrene Gym - Badge reward").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_location("Nacrene Gym - TM reward").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_location("Nacrene City - Item from Bianca").access_rule = lambda state: dark_cave(state, self.world)
+
         if "Castelia Gym" in self.world.dark_areas:
             self.world.get_location("Castelia Gym - Gym guide item").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_location("Castelia Gym - Badge reward").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_location("Castelia Gym - TM reward").access_rule = lambda state: dark_cave(state, self.world)
+
         if "Nimbasa Gym" in self.world.dark_areas:
             self.world.get_location("Nimbasa Gym - Gym guide item").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_location("Nimbasa Gym - Badge reward").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_location("Nimbasa Gym - TM reward").access_rule = lambda state: dark_cave(state, self.world)
+
         if "Driftveil Gym" or "Cold Storage" in self.world.dark_areas:
             self.world.get_location("Driftveil Gym - Badge reward").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_location("Driftveil City - TM from Bianca").access_rule = lambda state: dark_cave(state, self.world)
+
         if "Mistralton Gym" or "Celestial Tower" in self.world.dark_areas:
             self.world.get_location("Mistralton Gym - Gym guide item").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_location("Mistralton Gym - Badge reward").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_location("Mistralton Gym - TM reward").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_location("Mistralton City - Appearing item at south end of runway").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_location("Twist Mountain - TM from Alder").access_rule = lambda state: dark_cave(state, self.world)
+
         if "Icirrus Gym" in self.world.dark_areas:
             self.world.get_location("Icirrus Gym - Gym guide item").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_location("Icirrus Gym - Badge reward").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_location("Icirrus Gym - TM reward").access_rule = lambda state: dark_cave(state, self.world)
+
         if "Opelucid Gym" in self.world.dark_areas:
             self.world.get_location("Opelucid Gym - Gym guide item").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_location("Opelucid Gym - Badge reward").access_rule = lambda state: dark_cave(state, self.world)
