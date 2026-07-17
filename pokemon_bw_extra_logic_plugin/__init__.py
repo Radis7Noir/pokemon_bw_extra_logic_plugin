@@ -273,7 +273,7 @@ class Plugin(PluginProtocol):
 
     @classmethod
     def stage_init(cls):
-        from worlds.pokemon_bw.data.locations.rules import can_use_surf, can_use_waterfall, can_use_dive, can_use_cut, can_use_strength, can_encounter_swords_of_justice
+        from worlds.pokemon_bw.data.locations.rules import can_use_surf, can_use_waterfall, can_use_dive, can_use_cut, can_use_strength, can_use_flash, can_encounter_swords_of_justice
 
         def cut_with_trio_badge(old_rule: "ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:
             return old_rule(state, world) and (state.has("Trio Badge", world.player) or not world.hm_with_badges)
@@ -296,7 +296,7 @@ class Plugin(PluginProtocol):
         cls.modify_rule(can_use_dive, dive_with_legend_badge)
 
         def swords_of_justice_with_dark_areas(old_rule: "ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:
-            return old_rule(state, world) and ((can_use_flash(state, self.world) and "Guidance Chamber" in self.world.dark_areas) or not "Guidance Chamber" in self.world.dark_areas)
+            return old_rule(state, world) and ((can_use_flash(state, world) and "Guidance Chamber" in world.dark_areas) or not "Guidance Chamber" in world.dark_areas)
         cls.modify_rule(can_encounter_swords_of_justice, swords_of_justice_with_dark_areas)
 
 
