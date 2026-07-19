@@ -177,7 +177,7 @@ class Plugin(PluginProtocol):
             dark_areas_narc += i.to_bytes(2, "little")
             dark_areas_narc += b'\1\0' if "Relic Castle Pre-Sand Room" in dark_areas_list else b'\0\0'
 
-        for i in range(166, 189):
+        for i in range(166, 190):
             dark_areas_narc += i.to_bytes(2, "little")
             dark_areas_narc += b'\1\0' if "Relic Castle Post-Sand Room" in dark_areas_list else b'\0\0'
 
@@ -192,27 +192,27 @@ class Plugin(PluginProtocol):
         dark_areas_narc += (335).to_bytes(2, "little")
         dark_areas_narc += b'\1\0' if "Guidance Chamber" in dark_areas_list else b'\0\0'
 
-        for i in range(195, 197):
+        for i in range(195, 198):
             dark_areas_narc += i.to_bytes(2, "little")
             dark_areas_narc += b'\1\0' if "Chargestone Cave" in dark_areas_list else b'\0\0'
 
-        for i in range(339, 341):
+        for i in range(339, 342):
             dark_areas_narc += i.to_bytes(2, "little")
             dark_areas_narc += b'\1\0' if "Celestial Tower" in dark_areas_list else b'\0\0'
 
-        for i in range(200, 203):
+        for i in range(200, 204):
             dark_areas_narc += i.to_bytes(2, "little")
             dark_areas_narc += b'\1\0' if "Twist Mountain" in dark_areas_list else b'\0\0'
 
-        for i in range(207, 212):
+        for i in range(207, 213):
             dark_areas_narc += i.to_bytes(2, "little")
             dark_areas_narc += b'\1\0' if "Dragonspiral Tower" in dark_areas_list else b'\0\0'
 
-        for i in range(352, 354):
+        for i in range(352, 355):
             dark_areas_narc += i.to_bytes(2, "little")
             dark_areas_narc += b'\1\0' if "Challengers Cave" in dark_areas_list else b'\0\0'
 
-        for i in range(215, 229):
+        for i in range(215, 230):
             dark_areas_narc += i.to_bytes(2, "little")
             dark_areas_narc += b'\1\0' if "Victory Road" in dark_areas_list else b'\0\0'
 
@@ -220,7 +220,7 @@ class Plugin(PluginProtocol):
             dark_areas_narc += i.to_bytes(2, "little")
             dark_areas_narc += b'\1\0' if "Giant Chasm" in dark_areas_list else b'\0\0'
 
-        for i in range(245, 248):
+        for i in range(245, 249):
             dark_areas_narc += i.to_bytes(2, "little")
             dark_areas_narc += b'\1\0' if "Abyssal Ruins" in dark_areas_list else b'\0\0'
 
@@ -257,7 +257,12 @@ class Plugin(PluginProtocol):
             "Giant Chasm",
             "Abyssal Ruins"
         ]
-        dark_areas_list: list[str] = self.get_option("dark_areas", [], typ=list, support_weighting=False).copy()
+        default_dark_areas = [
+            "Wellspring Cave B1F",
+            "Mistralton Cave",
+            "Challengers Cave"
+        ]
+        dark_areas_list: list[str] = self.get_option("dark_areas", default_dark_areas, typ=list, support_weighting=False).copy()
         
         # Process _Random and _All
         if "_All" in dark_areas_list:
@@ -269,7 +274,7 @@ class Plugin(PluginProtocol):
 
         # Add to world and slot data
         self.world.dark_areas = dark_areas_list
-        self.world.extended_slot_data()["dark_areas"] = dark_areas_list
+        self.slot_data["dark_areas"] = dark_areas_list
 
     @classmethod
     def stage_init(cls):
@@ -516,19 +521,19 @@ class Plugin(PluginProtocol):
                 "Challenger's Cave to Wellspring Cave Warp",
                 lambda state: can_use_rock_smash(state, self.world) and dark_cave(state, self.world)
             )
-
-            self.new_event(
-                "Rock Smash Static Wellspring Cave", "Dwebble", "Wellspring Cave Entrance",
-                extended_rule=can_use_rock_smash
-            )
-            self.new_event(
-                "Rock Smash Static Challenger's Cave", "Dwebble", "Challenger's Cave",
-                collection_rule=lambda state: can_use_rock_smash(state, self.world)
-            )
-            self.new_event(
-                "Rock Smash Static Route 13", "Dwebble", "Route 13",
-                extended_rule=can_use_rock_smash
-            )
+            if self.world.options.modify_logic.is_consider_static:
+                self.new_event(
+                    "Rock Smash Static Wellspring Cave", "Dwebble", "Wellspring Cave Entrance",
+                    extended_rule=can_use_rock_smash
+                )
+                self.new_event(
+                    "Rock Smash Static Challenger's Cave", "Dwebble", "Challenger's Cave",
+                    collection_rule=lambda state: can_use_rock_smash(state, self.world)
+                )
+                self.new_event(
+                    "Rock Smash Static Route 13", "Dwebble", "Route 13",
+                    extended_rule=can_use_rock_smash
+                )
 
             self.world.get_location("Wellspring Cave - 1F hidden item #1").access_rule = lambda state: can_use_rock_smash(state, self.world)
             self.world.get_location("Wellspring Cave - 1F north east item").access_rule = lambda state: can_use_rock_smash(state, self.world)
@@ -538,14 +543,14 @@ class Plugin(PluginProtocol):
             self.world.get_entrance("Undella Town north gate").access_rule = lambda state: can_use_rock_smash(state, self.world)
 
             if self.get_option("add_rock_smash_musharna", False):
-                self.world.get_location("Dreamyard Static Encounter").access_rule = lambda state: can_use_rock_smash(state, self.world)
                 self.world.get_location("Dreamyard Basement - North west item").access_rule = lambda state: can_use_rock_smash(state, self.world)
                 self.world.get_entrance("Dreamyard (Basement) - Dark Grass").access_rule = lambda state: can_use_rock_smash(state, self.world)
-
-                self.new_event(
-                    "Rock Smash Static Dreamyard Basement", "Dwebble", "Dreamyard Basement",
-                    extended_rule=can_use_rock_smash
-                )
+                if self.world.options.modify_logic.is_consider_static:
+                    self.world.get_location("Dreamyard Static Encounter").access_rule = lambda state: can_use_rock_smash(state, self.world)
+                    self.new_event(
+                        "Rock Smash Static Dreamyard Basement", "Dwebble", "Dreamyard Basement",
+                        extended_rule=can_use_rock_smash
+                    )
 
         if self.get_option("add_ss_ticket", False):
             self.world.regions["P2 Laboratory"].connect(
