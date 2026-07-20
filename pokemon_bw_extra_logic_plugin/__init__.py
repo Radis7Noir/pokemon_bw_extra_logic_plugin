@@ -140,8 +140,9 @@ class Plugin(PluginProtocol):
         dark_areas_narc += (7).to_bytes(2, "little")
         dark_areas_narc += b'\1\0' if "Striaton Gym" in dark_areas_list else b'\0\0'
 
-        dark_areas_narc += (18).to_bytes(2, "little")
-        dark_areas_narc += b'\1\0' if "Nacrene Gym" in dark_areas_list else b'\0\0'
+        for i in [18, 19]:
+            dark_areas_narc += i.to_bytes(2, "little")
+            dark_areas_narc += b'\1\0' if "Nacrene Gym" in dark_areas_list else b'\0\0'
 
         dark_areas_narc += (29).to_bytes(2, "little")
         dark_areas_narc += b'\1\0' if "Castelia Gym" in dark_areas_list else b'\0\0'
@@ -149,8 +150,9 @@ class Plugin(PluginProtocol):
         dark_areas_narc += (63).to_bytes(2, "little")
         dark_areas_narc += b'\1\0' if "Nimbasa Gym" in dark_areas_list else b'\0\0'
 
-        dark_areas_narc += (97).to_bytes(2, "little")
-        dark_areas_narc += b'\1\0' if "Driftveil Gym" in dark_areas_list else b'\0\0'
+        for i in [97, 98]:
+            dark_areas_narc += i.to_bytes(2, "little")
+            dark_areas_narc += b'\1\0' if "Driftveil Gym" in dark_areas_list else b'\0\0'
 
         dark_areas_narc += (108).to_bytes(2, "little")
         dark_areas_narc += b'\1\0' if "Mistralton Gym" in dark_areas_list else b'\0\0'
@@ -220,10 +222,6 @@ class Plugin(PluginProtocol):
             dark_areas_narc += i.to_bytes(2, "little")
             dark_areas_narc += b'\1\0' if "Giant Chasm" in dark_areas_list else b'\0\0'
 
-        for i in range(245, 249):
-            dark_areas_narc += i.to_bytes(2, "little")
-            dark_areas_narc += b'\1\0' if "Abyssal Ruins" in dark_areas_list else b'\0\0'
-
 
     def generate_early(self):
         if DEV: return
@@ -254,8 +252,7 @@ class Plugin(PluginProtocol):
             "Dragonspiral Tower",
             "Challengers Cave",
             "Victory Road",
-            "Giant Chasm",
-            "Abyssal Ruins"
+            "Giant Chasm"
         ]
         default_dark_areas = [
             "Wellspring Cave B1F",
@@ -401,6 +398,8 @@ class Plugin(PluginProtocol):
             lambda state: state.has("Basement Key", self.world.player)
         )
 
+        if self.get_option("hm_with_badges", False):
+            self.world.get_entrance("Abyssal Ruins 3F purple pillar").access_rule = lambda state: state.has("HM04 Strength", self.world.player) and state.has_any(self.world.strength_species, self.world.player)
 
         if self.get_option("extra_cut_trees", False):
 
@@ -611,6 +610,7 @@ class Plugin(PluginProtocol):
             self.world.get_location("Nimbasa Gym - TM reward").access_rule = lambda state: dark_cave(state, self.world)
 
         if "Driftveil Gym" or "Cold Storage" in self.world.dark_areas:
+            self.world.get_location("Driftveil Gym - Gym guide item").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_location("Driftveil Gym - Badge reward").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_location("Driftveil City - TM from Bianca").access_rule = lambda state: dark_cave(state, self.world)
 

@@ -43,6 +43,46 @@ This plugin is currently only comptabile with v0.3.35+ of the main BW APworld.
 - `add_rock_smash_musharna`
   * Adds breakable rocks on the northen side of the Dreamyard Basement
   * This option can only be enabled if `add_rock_smash` is set to true
+- `dark_areas`
+  * Turns all the listed areas dark and allows the use of Flash
+  * `Require flash` makes all the darken areas logically require Flash
+  * `_All` includes all areas
+  * `_Random` has a 50% chance to include each area that is not already included
+  * `[]` removes all darken areas
+  * Removing the option entirely will keep the default dark areas
+
+## Dark Area List
+```
+"Striaton Gym",
+"Nacrene Gym",
+"Castelia Gym",
+"Nimbasa Gym",
+"Driftveil Gym",
+"Mistralton Gym",
+"Icirrus Gym",
+"Opelucid Gym",
+"Dreamyard Basement",
+"Wellspring Cave 1F",
+"Wellspring Cave B1F",
+"Pinwheel Forest Inside",
+"Relic Castle Pre-Sand Room",
+"Relic Castle Post-Sand Room",
+"Cold Storage",
+"Mistralton Cave",
+"Guidance Chamber",
+"Chargestone Cave",
+"Celestial Tower",
+"Twist Mountain",
+"Dragonspiral Tower",
+"Challengers Cave",
+"Victory Road",
+"Giant Chasm"
+```
+Example:
+```
+      dark_areas: ["Wellspring Cave B1F", "Mistralton Cave", "Challengers Cave", "_Random"]
+
+```
 
 ## Instructions
 - Download the latest release of the plugin APworld

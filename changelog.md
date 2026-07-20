@@ -2,6 +2,19 @@
 
 Changelog
 
+## v6
+* Fixed the logic in Abyssal Ruins as the Strength purple block can be pushed regardless of the badge requirement
+* Fixed the Static Musharna logic with `add_rock_smash_musharna` not taking the `Consider static pokémon` modifier into account
+* Dwebble from breakable rocks now take the `Consider static pokémon` modifier into account
+* Added `dark_areas` as a YAML option
+  * Turns all the listed areas dark and allows the use of Flash
+  * `Require flash` makes all the darken areas logically require Flash
+  * `_All` includes all areas
+  * `_Random` has a 50% chance to include each area that is not already included
+  * `[]` removes all darken areas
+  * The full list of valid areas is available on the readme
+  * Removing the option entirely will keep the default dark areas
+
 ## v5
 * Fixed the logic of the plane connection incorrectly checking for Cut and the Pass instead of just the Pass
 
