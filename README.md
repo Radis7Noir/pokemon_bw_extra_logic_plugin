@@ -76,12 +76,13 @@ This plugin is currently only comptabile with v0.3.35+ of the main BW APworld.
 "Dragonspiral Tower",
 "Challengers Cave",
 "Victory Road",
-"Giant Chasm"
+"Giant Chasm",
+"_All",
+"_Random"
 ```
 Example:
 ```
       dark_areas: ["Wellspring Cave B1F", "Mistralton Cave", "Challengers Cave", "_Random"]
-
 ```
 
 ## Instructions
@@ -101,6 +102,7 @@ Example:
       move_strength_boulders: true
       move_strength_boulders_vi_road: true
       hm_with_badges: true
+      dark_areas: ["Wellspring Cave B1F", "Mistralton Cave", "Challengers Cave"]
 ```
 - Set the options to true or false as seen fit and generate the seed as usual
   - When running the .apwhite/.apblack patch, the produced .nds file should include the features that have been activated.
