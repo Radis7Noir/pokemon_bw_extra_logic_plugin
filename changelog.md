@@ -2,6 +2,9 @@
 
 Changelog
 
+## v7
+* Udated the Liberty Garden patch to ensure compatibility with the QoL plugin
+
 ## v6
 * Fixed the logic in Abyssal Ruins as the Strength purple block can be pushed regardless of the badge requirement
 * Fixed the Static Musharna logic with `add_rock_smash_musharna` not taking the `Consider static pokémon` modifier into account

@@ -25,7 +25,7 @@ class Plugin(PluginProtocol):
 
     name = "Pokemon BW Extra Logic Plugin"
     domain = "extra_logic"
-    version = "1.6.0"
+    version = "1.7.0"
     author = "RadisNoir"
 
     # This is called during the patching process, after the main apworld did all its standard modifications to the rom.
@@ -66,6 +66,11 @@ class Plugin(PluginProtocol):
                 narc_file = self.get_from_narc("a/0/5/7", 867)
                 self.otpp_patch_array(narc_file, loaded_file)
 
+            if self.get_option("add_ss_ticket", False):
+                loaded_file = pkgutil.get_data(__name__, f"files/a057/470")
+                narc_file = self.get_from_narc("a/0/5/7", 470)
+                self.otpp_patch_array(narc_file, loaded_file)
+
         if self.get_option("add_rock_smash", False):
             for i in [70, 356, 363]:
                 loaded_file = pkgutil.get_data(__name__, f"files/a008/add_rock_smash/{i:03d}")
@@ -94,7 +99,7 @@ class Plugin(PluginProtocol):
                 loaded_file = pkgutil.get_data(__name__, f"files/a003/add_ss_ticket/{i:03d}")
                 narc_file = self.get_from_narc("a/0/0/3", i)
                 self.otpp_patch_array(narc_file, loaded_file)
-            for i in [470, 476, 824]:
+            for i in [476, 824]:
                 loaded_file = pkgutil.get_data(__name__, f"files/a057/add_ss_ticket/{i:03d}")
                 narc_file = self.get_from_narc("a/0/5/7", i)
                 self.otpp_patch_array(narc_file, loaded_file)
