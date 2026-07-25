@@ -67,7 +67,7 @@ class Plugin(PluginProtocol):
                 self.otpp_patch_array(narc_file, loaded_file)
 
             if self.get_option("add_ss_ticket", False):
-                loaded_file = pkgutil.get_data(__name__, f"files/a057/470")
+                loaded_file = pkgutil.get_data(__name__, f"files/a057/add_ss_ticket/470")
                 narc_file = self.get_from_narc("a/0/5/7", 470)
                 self.otpp_patch_array(narc_file, loaded_file)
 
