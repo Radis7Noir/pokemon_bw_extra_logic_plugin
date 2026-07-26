@@ -435,6 +435,8 @@ class Plugin(PluginProtocol):
                 self.world.get_entrance("Pinwheel Forest West to Pinwheel Forest Outside").access_rule = lambda state: True
 
             if "Pinwheel Forest Inside" in self.world.dark_areas:
+                self.world.get_entrance("Enter Pinwheel Forest").access_rule = lambda state: dark_cave(state, self.world) and state.has("Loot Sack", self.world.player)
+                self.world.get_entrance("Pinwheel Forest north").access_rule = lambda state: dark_cave(state, self.world) and state.has("Dragon Skull", self.world.player)
                 self.world.regions["Pinwheel Forest Outside"].connect(
                     self.world.regions["Skyarrow Bridge"],
                     "Pinwheel Forest to Skyarrow Bridge with Cut",
@@ -712,7 +714,7 @@ class Plugin(PluginProtocol):
 
         if not "Challengers Cave" in self.world.dark_areas:
             self.world.get_entrance("Route 9 cave entrance").access_rule = lambda state: state.has("Red Chain", self.world.player)
-            self.world.get_entrance("Challenger's Cave Exit to Route 9").access_rule = lambda state: dark_cave(state, self.world)
+            self.world.get_entrance("Challenger's Cave Exit to Route 9").access_rule = lambda state: state.has("Red Chain", self.world.player)
 
         if self.get_option("add_rock_smash", False) and not "Challengers Cave" in self.world.dark_areas and not "Wellspring Cave 1F" in self.world.dark_areas:
             self.world.get_entrance("Wellspring Cave to Challenger's Cave Warp").access_rule = lambda state: can_use_rock_smash(state, self.world)
