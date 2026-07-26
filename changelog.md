@@ -3,8 +3,8 @@
 Changelog
 
 ## v7
-* Udated the Liberty Garden patch to ensure compatibility with the QoL plugin
-* Fixed Wellspring Cave B1F always considered as a dark area
+* Udated multiple patches to ensure compatibility with the QoL plugin
+* Fixed some areas always considered as a dark areas in logic
 
 ## v6
 * Fixed the logic in Abyssal Ruins as the Strength purple block can be pushed regardless of the badge requirement
