@@ -466,7 +466,7 @@ class Plugin(PluginProtocol):
                 "Dreamyard Entrance to Dreamyard South",
                 lambda state: can_use_strength(state, self.world)
             )
-            if not "Icirrus Gym" and not "Dragonspiral Tower" in self.world.dark_areas:
+            if not "Icirrus Gym" in self.world.dark_areas and not "Dragonspiral Tower" in self.world.dark_areas:
                 self.world.get_location("Dragonspiral Tower - 2F north east item").access_rule = lambda state: can_use_strength(state, self.world)
                 self.world.get_location("Dragonspiral Tower - 2F item on pillar").access_rule = lambda state: can_use_strength(state, self.world)
                 self.world.get_location("Dragonspiral Tower - 3F item").access_rule = lambda state: can_use_strength(state, self.world)
@@ -476,7 +476,7 @@ class Plugin(PluginProtocol):
                 self.world.get_location("Dragonspiral Tower - 5F item #3").access_rule = lambda state: can_use_strength(state, self.world)
                 self.world.get_location("Dragonspiral Tower - 6F item").access_rule = lambda state: can_use_strength(state, self.world)
 
-            if "Icirrus Gym" or "Dragonspiral Tower" in self.world.dark_areas:
+            if "Icirrus Gym" in self.world.dark_areas or "Dragonspiral Tower" in self.world.dark_areas:
                 self.world.get_location("Dragonspiral Tower - 2F north east item").access_rule = lambda state: can_use_strength(state, self.world) and dark_cave(state, self.world)
                 self.world.get_location("Dragonspiral Tower - 2F item on pillar").access_rule = lambda state: can_use_strength(state, self.world) and dark_cave(state, self.world)
                 self.world.get_location("Dragonspiral Tower - 3F item").access_rule = lambda state: can_use_strength(state, self.world) and dark_cave(state, self.world)
@@ -614,12 +614,12 @@ class Plugin(PluginProtocol):
             self.world.get_location("Nimbasa Gym - Badge reward").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_location("Nimbasa Gym - TM reward").access_rule = lambda state: dark_cave(state, self.world)
 
-        if "Driftveil Gym" or "Cold Storage" in self.world.dark_areas:
+        if "Driftveil Gym" in self.world.dark_areas or "Cold Storage" in self.world.dark_areas:
             self.world.get_location("Driftveil Gym - Gym guide item").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_location("Driftveil Gym - Badge reward").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_location("Driftveil City - TM from Bianca").access_rule = lambda state: dark_cave(state, self.world)
 
-        if "Mistralton Gym" or "Celestial Tower" in self.world.dark_areas:
+        if "Mistralton Gym" in self.world.dark_areas or "Celestial Tower" in self.world.dark_areas:
             self.world.get_location("Mistralton Gym - Gym guide item").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_location("Mistralton Gym - Badge reward").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_location("Mistralton Gym - TM reward").access_rule = lambda state: dark_cave(state, self.world)
@@ -649,7 +649,7 @@ class Plugin(PluginProtocol):
             self.world.get_entrance("Route 3 north west").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_entrance("Wellspring Cave Exit to Route 3").access_rule = lambda state: dark_cave(state, self.world)
 
-        if not "Wellspring Cave 2F" in self.world.dark_areas:
+        if not "Wellspring Cave B1F" in self.world.dark_areas:
             self.world.get_entrance("Wellspring Cave Stairs").access_rule = lambda state: True
 
         if "Pinwheel Forest Inside" in self.world.dark_areas and not self.get_option("extra_cut_trees", False):
@@ -723,9 +723,6 @@ class Plugin(PluginProtocol):
 
         if "Giant Chasm" in self.world.dark_areas:
             self.world.get_entrance("Giant Chasm outer cave entrance").access_rule = lambda state: dark_cave(state, self.world)
-
-        if "Abyssal Ruins" in self.world.dark_areas:
-            self.world.get_entrance("Undella Bay dive spots").access_rule = lambda state: can_use_dive(state, self.world) and dark_cave(state, self.world)
 
 
     # This is called after generating the item pool of a world, but before placing all locked items (e.g. gym badges in gym rewards)
