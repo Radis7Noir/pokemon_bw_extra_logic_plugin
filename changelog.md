@@ -4,8 +4,7 @@ Changelog
 
 ## v7
 * Udated multiple patches to ensure compatibility with the QoL plugin
-* Fixed some areas always considered as a dark areas in logic
-
+* Fixed logic related to dark_areas in multiple areas
 ## v6
 * Fixed the logic in Abyssal Ruins as the Strength purple block can be pushed regardless of the badge requirement
 * Fixed the Static Musharna logic with `add_rock_smash_musharna` not taking the `Consider static pokémon` modifier into account

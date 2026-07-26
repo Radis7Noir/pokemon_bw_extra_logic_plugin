@@ -311,7 +311,7 @@ class Plugin(PluginProtocol):
     def create_regions(self, catchable_species_data: dict[str, "SpeciesData"]):
         from worlds.pokemon_bw.data.pokemon.movesets import table as moveset_table
         from worlds.pokemon_bw.data.locations.rules import (can_use_cut, can_use_surf, can_use_dive, can_use_strength, can_use_surf_or_strength,
-                                                            dark_cave, challengers_cave)
+                                                            dark_cave, challengers_cave, can_beat_ghetsis)
         if DEV: return
 
         self.world.hm_with_badges = self.get_option("hm_with_badges", False)
@@ -650,6 +650,9 @@ class Plugin(PluginProtocol):
         if "Wellspring Cave 1F" in self.world.dark_areas:
             self.world.get_entrance("Route 3 north west").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_entrance("Wellspring Cave Exit to Route 3").access_rule = lambda state: dark_cave(state, self.world)
+            self.world.get_location("Route 3 - Item from girl after Wellspring Cave #1").access_rule = lambda state: dark_cave(state, self.world)
+            self.world.get_location("Route 3 - Item from girl after Wellspring Cave #2").access_rule = lambda state: dark_cave(state, self.world)
+            self.world.get_location("Route 3 - Item from girl after Wellspring Cave #3").access_rule = lambda state: dark_cave(state, self.world)
 
         if not "Wellspring Cave B1F" in self.world.dark_areas:
             self.world.get_entrance("Wellspring Cave Stairs").access_rule = lambda state: True
@@ -663,10 +666,10 @@ class Plugin(PluginProtocol):
         if "Relic Castle Pre-Sand Room" in self.world.dark_areas:
             self.world.get_entrance("Desert Resort tower").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_entrance("Desert Resort stairs").access_rule = lambda state: dark_cave(state, self.world)
-            self.world.get_entrance("Relic Castle B2F castleside").access_rule = lambda state: dark_cave(state, self.world)
+            self.world.get_entrance("Relic Castle B2F castleside").access_rule = lambda state: dark_cave(state, self.world) and state.has("Explorer Kit", self.world.player)
 
         if "Relic Castle Post-Sand Room" in self.world.dark_areas:
-            self.world.get_entrance("Relic Castle B5F castleside").access_rule = lambda state: dark_cave(state, self.world)
+            self.world.get_entrance("Relic Castle B5F castleside").access_rule = lambda state: dark_cave(state, self.world) and can_beat_ghetsis(state, self.world)
             self.world.get_entrance("Relic Castle basement top left").access_rule = lambda state: dark_cave(state, self.world)
 
         if "Cold Storage" in self.world.dark_areas:
@@ -675,7 +678,7 @@ class Plugin(PluginProtocol):
             self.world.get_location("Cold Storage Building - South east item").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_location("Cold Storage Building - North east item").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_location("Cold Storage Building - Item in container").access_rule = lambda state: dark_cave(state, self.world)
-            self.world.get_location("Cold Storage - TM from sage Zinzolin").access_rule = lambda state: dark_cave(state, self.world)
+            self.world.get_location("Cold Storage - TM from sage Zinzolin").access_rule = lambda state: dark_cave(state, self.world) and can_beat_ghetsis(state, self.world)
 
         if not "Mistralton Cave" in self.world.dark_areas:
             self.world.get_entrance("Route 6 north east cave entrance").access_rule = lambda state: can_use_surf(state, self.world)
@@ -690,6 +693,8 @@ class Plugin(PluginProtocol):
         if "Chargestone Cave" in self.world.dark_areas:
             self.world.get_entrance("Mistralton City cave entrance").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_entrance("Chargestone Cave north exit").access_rule = lambda state: dark_cave(state, self.world)
+            self.world.get_entrance("Route 6 north").access_rule = lambda state: dark_cave(state, self.world) and state.has("Quake Badge", self.world.player)
+            self.world.get_entrance("Chargestone Cave south exit").access_rule = lambda state: dark_cave(state, self.world) and state.has("Quake Badge", self.world.player)
 
         if "Celestial Tower" in self.world.dark_areas:
             self.world.get_entrance("Route 7 tower").access_rule = lambda state: dark_cave(state, self.world)
@@ -697,6 +702,8 @@ class Plugin(PluginProtocol):
         if "Twist Mountain" in self.world.dark_areas:
             self.world.get_entrance("Twist Mountain east exit").access_rule = lambda state: dark_cave(state, self.world)
             self.world.get_entrance("Icirrus City cave entrance").access_rule = lambda state: dark_cave(state, self.world)
+            self.world.get_entrance("Route 7 north").access_rule = lambda state: dark_cave(state, self.world) and state.has("Jet Badge", self.world.player)
+            self.world.get_entrance("Twist Mountain south exit").access_rule = lambda state: dark_cave(state, self.world) and state.has("Jet Badge", self.world.player)
 
         if ("Dragonspiral Tower" in self.world.dark_areas or "Icirrus Gym" in self.world.dark_areas) and not self.get_option("move_strength_boulders", False):
             self.world.get_location("Dragonspiral Tower - 2F north east item").access_rule = lambda state: dark_cave(state, self.world)
