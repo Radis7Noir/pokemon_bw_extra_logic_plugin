@@ -4,14 +4,8 @@ from typing import TYPE_CHECKING
 from zipfile import ZipFile
 if __name__ == '__main__':
     from data.api import PluginProtocol
-    from files.starting_town import (TOWN_LIST, DEFAULT_STARTING_TOWN,
-                                     STARTING_HOUSES, _set_warp_target,
-                                     EXTRA_INTERIOR_EXITS)
 else:
     from .data.api import PluginProtocol
-    from .files.starting_town import (TOWN_LIST, DEFAULT_STARTING_TOWN,
-                                      STARTING_HOUSES, _set_warp_target,
-                                      EXTRA_INTERIOR_EXITS)
 try:
     from BaseClasses import ItemClassification, CollectionState
     if TYPE_CHECKING:
@@ -36,6 +30,9 @@ class Plugin(PluginProtocol):
 
     # This is called during the patching process, after the main apworld did all its standard modifications to the rom.
     def patch(self):
+        from .files.starting_town import (DEFAULT_STARTING_TOWN,
+                                            STARTING_HOUSES, _set_warp_target,
+                                            EXTRA_INTERIOR_EXITS)
         if DEV: return
 
         starting_town = self.slot_data.get("starting_town", DEFAULT_STARTING_TOWN)
@@ -286,6 +283,7 @@ class Plugin(PluginProtocol):
 
 
     def generate_early(self):
+        from .files.starting_town import (TOWN_LIST, DEFAULT_STARTING_TOWN)
         if DEV: return
 
         # Get full and player-provided lists
@@ -389,20 +387,19 @@ class Plugin(PluginProtocol):
         cls.modify_rule(can_reach_mistralton_city, relearner_mistralton_or_nuvema)
 
 
-    # We need to run this sooner than connect_regions() to avoid the leaking bug
-    def fill_rules(self):
-        if DEV: return
-        from worlds.pokemon_bw.data.locations.region_connections import connections
-        connections["Starting the game"] = connections["Starting the game"]._replace(
-            entering_region=getattr(self.world, "starting_town", DEFAULT_STARTING_TOWN)
-        )
-
     # This is called after generating all regions, regions connections, locations, and events
     def create_regions(self, catchable_species_data: dict[str, "SpeciesData"]):
         from worlds.pokemon_bw.data.pokemon.movesets import table as moveset_table
         from worlds.pokemon_bw.data.locations.rules import (can_use_cut, can_use_surf, can_use_strength, can_use_surf_or_strength,
                                                             dark_cave, challengers_cave, can_beat_ghetsis)
         if DEV: return
+
+        # We edit the "Starting the game" connection with the set starting_town here
+        connection = self.world.get_entrance("Starting the game")
+        starting_region = self.world.regions["starting_town"]
+        connection.connected_region = starting_region
+        self.world.regions["Nuvema Town"].entrances.remove(connection)
+        starting_region.entrances.append(connection)
 
         self.world.hm_with_badges = self.get_option("hm_with_badges", False)
 
