@@ -4,8 +4,14 @@ from typing import TYPE_CHECKING
 from zipfile import ZipFile
 if __name__ == '__main__':
     from data.api import PluginProtocol
+    from files.starting_town import (TOWN_LIST, DEFAULT_STARTING_TOWN,
+                                     STARTING_HOUSES, _set_warp_target,
+                                     EXTRA_INTERIOR_EXITS)
 else:
     from .data.api import PluginProtocol
+    from .files.starting_town import (TOWN_LIST, DEFAULT_STARTING_TOWN,
+                                      STARTING_HOUSES, _set_warp_target,
+                                      EXTRA_INTERIOR_EXITS)
 try:
     from BaseClasses import ItemClassification, CollectionState
     if TYPE_CHECKING:
@@ -25,23 +31,25 @@ class Plugin(PluginProtocol):
 
     name = "Pokemon BW Extra Logic Plugin"
     domain = "extra_logic"
-    version = "1.7.0"
+    version = "1.8.0"
     author = "RadisNoir"
 
     # This is called during the patching process, after the main apworld did all its standard modifications to the rom.
     def patch(self):
         if DEV: return
 
+        starting_town = self.slot_data.get("starting_town", DEFAULT_STARTING_TOWN)
+
         if not any(p.name == "Pokemon BW QoL Plugin" for p in self.all_plugins):
-            for i in [12, 32, 214, 308, 310, 510, 642, 648, 652, 706, 866]:
-                loaded_file = pkgutil.get_data(__name__, f"files/a057/{i:03d}")
-                narc_file = self.get_from_narc("a/0/5/7", i)
-                self.otpp_patch_array(narc_file, loaded_file)
-            for i in [21, 67, 112, 163, 271, 280, 353, 356, 385]:
+            for i in [21, 67, 112, 163, 271, 280, 349, 353, 356, 385, 428, 429, 435]:
                 loaded_file = pkgutil.get_data(__name__, f"files/a003/{i:03d}")
                 narc_file = self.get_from_narc("a/0/0/3", i)
                 self.otpp_patch_array(narc_file, loaded_file)
-            for i in [16, 62, 154, 321]:
+            for i in [12, 32, 214, 308, 310, 510, 634, 642, 648, 652, 706, 778, 792, 794, 866]:
+                loaded_file = pkgutil.get_data(__name__, f"files/a057/{i:03d}")
+                narc_file = self.get_from_narc("a/0/5/7", i)
+                self.otpp_patch_array(narc_file, loaded_file)
+            for i in [16, 62, 154, 317, 321, 397]:
                 loaded_file = pkgutil.get_data(__name__, f"files/a125/{i:03d}")
                 narc_file = self.get_from_narc("a/1/2/5", i)
                 self.otpp_patch_array(narc_file, loaded_file)
@@ -70,6 +78,24 @@ class Plugin(PluginProtocol):
                 loaded_file = pkgutil.get_data(__name__, f"files/a057/add_ss_ticket/470")
                 narc_file = self.get_from_narc("a/0/5/7", 470)
                 self.otpp_patch_array(narc_file, loaded_file)
+
+        if not any(p.name == "Pokemon BW QoL Plugin" for p in self.all_plugins) and "Nuvema Town" in starting_town:
+            loaded_file = pkgutil.get_data(__name__, f"files/a057/780")
+            narc_file = self.get_from_narc("a/0/5/7", 780)
+            self.otpp_patch_array(narc_file, loaded_file)
+
+            loaded_file = pkgutil.get_data(__name__, f"files/a125/389")
+            narc_file = self.get_from_narc("a/1/2/5", 389)
+            self.otpp_patch_array(narc_file, loaded_file)
+
+        if not any(p.name == "Pokemon BW QoL Plugin" for p in self.all_plugins) and not "Nuvema Town" in starting_town:
+            loaded_file = pkgutil.get_data(__name__, f"files/a057/780_not_nuvema")
+            narc_file = self.get_from_narc("a/0/5/7", 780)
+            self.otpp_patch_array(narc_file, loaded_file)
+
+            loaded_file = pkgutil.get_data(__name__, f"files/a125/389_not_nuvema")
+            narc_file = self.get_from_narc("a/1/2/5", 389)
+            self.otpp_patch_array(narc_file, loaded_file)
 
         if self.get_option("add_rock_smash", False):
             for i in [70, 356, 363]:
@@ -227,6 +253,37 @@ class Plugin(PluginProtocol):
             dark_areas_narc += i.to_bytes(2, "little")
             dark_areas_narc += b'\1\0' if "Giant Chasm" in dark_areas_list else b'\0\0'
 
+        # Starting Town
+        if starting_town != DEFAULT_STARTING_TOWN:
+            player_house = STARTING_HOUSES[DEFAULT_STARTING_TOWN]
+            target_house = STARTING_HOUSES[starting_town]
+            if None in player_house or None in target_house:
+                raise ValueError(
+                    "STARTING_HOUSES is missing warp data for %r or %r"
+                    % (DEFAULT_STARTING_TOWN, starting_town)
+                )
+            # see starting_town.py for the keys, each place needs 4 warps
+            p_out_zone, p_out_warp, p_in_zone, p_in_warp = player_house
+            t_out_zone, t_out_warp, t_in_zone, t_in_warp = target_house
+
+            # we take the values only once
+            zones = {}
+            for z in (p_out_zone, p_in_zone, t_out_zone, t_in_zone):
+                if z not in zones:
+                    zones[z] = self.get_from_narc("a/1/2/5", z)
+
+            # Front door of the player's house  ->  target house interior
+            _set_warp_target(zones[p_out_zone], p_out_warp, t_in_zone, t_in_warp)
+            # Front door in the target town     ->  player's house interior
+            _set_warp_target(zones[t_out_zone], t_out_warp, p_in_zone, p_in_warp)
+
+            # Exit(s) of the target house       ->  player's home town.
+            #  Mistralton's house has a three-tile doorway, so it lists extras.
+            for w in (t_in_warp,) + EXTRA_INTERIOR_EXITS.get(starting_town, ()):
+                _set_warp_target(zones[t_in_zone], w, p_out_zone, p_out_warp)
+            # Exit of the player's house        ->  the target town
+            _set_warp_target(zones[p_in_zone], p_in_warp, t_out_zone, t_out_warp)
+
 
     def generate_early(self):
         if DEV: return
@@ -278,9 +335,28 @@ class Plugin(PluginProtocol):
         self.world.dark_areas = dark_areas_list
         self.slot_data["dark_areas"] = dark_areas_list
 
+        # Randomize Starting Town
+        blacklist: list[str] = self.get_option(
+            "starting_town_blacklist", [], typ=list, support_weighting=False
+        )
+
+        if self.get_option("randomize_starting_town", False):
+            pool = [t for t in TOWN_LIST if t not in blacklist]
+            # Starting in Undella or Lacunosa potentially puts Cynthia in sphere one so we excluse them if goal = cynthia
+            if self.world.options.goal.current_key == "cynthia":
+                pool = [t for t in pool if t not in ("Undella Town", "Lacunosa Town")]
+            # If no choice left because of the blacklist choose Nuvema Town
+            starting_town = self.random.choice(pool) if pool else DEFAULT_STARTING_TOWN
+        else:
+            starting_town = DEFAULT_STARTING_TOWN
+
+        self.world.starting_town = starting_town
+        self.slot_data["starting_town"] = starting_town
+
     @classmethod
     def stage_init(cls):
         from worlds.pokemon_bw.data.locations.rules import can_use_surf, can_use_waterfall, can_use_dive, can_use_cut, can_use_strength, can_use_flash, can_encounter_swords_of_justice
+        from worlds.pokemon_bw.data.pokemon.evolution_methods import can_reach_mistralton_city
 
         def cut_with_trio_badge(old_rule: "ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:
             return old_rule(state, world) and (state.has("Trio Badge", world.player) or not world.hm_with_badges)
@@ -306,17 +382,97 @@ class Plugin(PluginProtocol):
             return old_rule(state, world) and ((can_use_flash(state, world) and "Guidance Chamber" in world.dark_areas) or not "Guidance Chamber" in world.dark_areas)
         cls.modify_rule(can_encounter_swords_of_justice, swords_of_justice_with_dark_areas)
 
+        def relearner_mistralton_or_nuvema(old_rule: "ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:
+            if getattr(world, "starting_town", DEFAULT_STARTING_TOWN) == "Mistralton City":
+                return state.can_reach_region("Nuvema Town", world.player)
+            return old_rule(state, world)
+        cls.modify_rule(can_reach_mistralton_city, relearner_mistralton_or_nuvema)
+
+
+    # We need to run this sooner than connect_regions() to avoid the leaking bug
+    def fill_rules(self):
+        if DEV: return
+        from worlds.pokemon_bw.data.locations.region_connections import connections
+        connections["Starting the game"] = connections["Starting the game"]._replace(
+            entering_region=getattr(self.world, "starting_town", DEFAULT_STARTING_TOWN)
+        )
 
     # This is called after generating all regions, regions connections, locations, and events
     def create_regions(self, catchable_species_data: dict[str, "SpeciesData"]):
         from worlds.pokemon_bw.data.pokemon.movesets import table as moveset_table
-        from worlds.pokemon_bw.data.locations.rules import (can_use_cut, can_use_surf, can_use_dive, can_use_strength, can_use_surf_or_strength,
+        from worlds.pokemon_bw.data.locations.rules import (can_use_cut, can_use_surf, can_use_strength, can_use_surf_or_strength,
                                                             dark_cave, challengers_cave, can_beat_ghetsis)
         if DEV: return
 
         self.world.hm_with_badges = self.get_option("hm_with_badges", False)
 
         # Missing Connections
+        self.world.regions["Route 1 East"].connect(
+            self.world.regions["Nuvema Town"],
+            "Route 1 to Nuvema Town",
+            lambda state: True
+        )
+
+        self.world.regions["Accumula Town"].connect(
+            self.world.regions["Route 1 East"],
+            "Accumula Town to Route 1",
+            lambda state: True
+        )
+
+        self.world.regions["Route 1 West"].connect(
+            self.world.regions["Route 1 East"],
+            "Route 1 West to Route 1 East",
+            lambda state: can_use_surf(state, self.world)
+        )
+
+        self.world.regions["Route 2"].connect(
+            self.world.regions["Accumula Town"],
+            "Route 2 to Accumula Town",
+            lambda state: True
+        )
+
+        self.world.regions["Striaton City"].connect(
+            self.world.regions["Route 2"],
+            "Striaton City to Route 2",
+            lambda state: True
+        )
+
+        self.world.regions["P2 Laboratory"].connect(
+            self.world.regions["Route 17 North"],
+            "P2 Laboratory to Route 17 North",
+            lambda state: can_use_surf(state, self.world)
+        )
+
+        self.world.regions["Route 18 Coast"].connect(
+            self.world.regions["Route 17 North"],
+            "Route 18 Coast to Route 17 North",
+            lambda state: can_use_surf(state, self.world)
+        )
+
+        self.world.regions["Route 17 North"].connect(
+            self.world.regions["Route 18"],
+            "Route 17 North to Route 18",
+            lambda state: can_use_surf(state, self.world)
+        )
+
+        self.world.regions["Route 17 North"].connect(
+            self.world.regions["Route 17 South"],
+            "Route 17 North to Route 17 South",
+            lambda state: can_use_surf(state, self.world)
+        )
+
+        self.world.regions["Route 17 South"].connect(
+            self.world.regions["Route 1 West"],
+            "Route 17 South to Route 1 West",
+            lambda state: can_use_surf(state, self.world)
+        )
+
+        self.world.regions["Route 18"].connect(
+            self.world.regions["Route 17 South"],
+            "Route 18 to Route 17 South",
+            lambda state: can_use_surf(state, self.world)
+        )
+
         self.world.regions["Route 3"].connect(
             self.world.regions["Striaton City"],
             "Route 3 to Striaton City",
