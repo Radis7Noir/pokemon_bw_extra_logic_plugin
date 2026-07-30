@@ -4,8 +4,10 @@ from typing import TYPE_CHECKING
 from zipfile import ZipFile
 if __name__ == '__main__':
     from data.api import PluginProtocol
+    from starting_town import DEFAULT_STARTING_TOWN as _starting_town_check  # noqa: F401
 else:
     from .data.api import PluginProtocol
+    from .starting_town import DEFAULT_STARTING_TOWN as _starting_town_check  # noqa: F401
 try:
     from BaseClasses import ItemClassification, CollectionState
     if TYPE_CHECKING:
@@ -30,7 +32,7 @@ class Plugin(PluginProtocol):
 
     # This is called during the patching process, after the main apworld did all its standard modifications to the rom.
     def patch(self):
-        from .files.starting_town import (DEFAULT_STARTING_TOWN,
+        from .starting_town import (DEFAULT_STARTING_TOWN,
                                             STARTING_HOUSES, _set_warp_target,
                                             EXTRA_INTERIOR_EXITS)
         if DEV: return
@@ -259,7 +261,7 @@ class Plugin(PluginProtocol):
                     "STARTING_HOUSES is missing warp data for %r or %r"
                     % (DEFAULT_STARTING_TOWN, starting_town)
                 )
-            # see starting_town.py for the keys, each place needs 4 warps
+            # see starting_town.py for the values, each place needs 4 warps
             p_out_zone, p_out_warp, p_in_zone, p_in_warp = player_house
             t_out_zone, t_out_warp, t_in_zone, t_in_warp = target_house
 
@@ -275,7 +277,7 @@ class Plugin(PluginProtocol):
             _set_warp_target(zones[t_out_zone], t_out_warp, p_in_zone, p_in_warp)
 
             # Exit(s) of the target house       ->  player's home town.
-            #  Mistralton's house has a three-tile doorway, so it lists extras.
+            #  Mistralton's house has three 1-tile warps
             for w in (t_in_warp,) + EXTRA_INTERIOR_EXITS.get(starting_town, ()):
                 _set_warp_target(zones[t_in_zone], w, p_out_zone, p_out_warp)
             # Exit of the player's house        ->  the target town
@@ -283,7 +285,7 @@ class Plugin(PluginProtocol):
 
 
     def generate_early(self):
-        from .files.starting_town import (TOWN_LIST, DEFAULT_STARTING_TOWN)
+        from .starting_town import (TOWN_LIST, DEFAULT_STARTING_TOWN)
         if DEV: return
 
         # Get full and player-provided lists
@@ -351,6 +353,9 @@ class Plugin(PluginProtocol):
         self.world.starting_town = starting_town
         self.slot_data["starting_town"] = starting_town
 
+        # Not leaking hopefully
+        self.world.hm_with_badges = self.get_option("hm_with_badges", False)
+
     @classmethod
     def stage_init(cls):
         from worlds.pokemon_bw.data.locations.rules import can_use_surf, can_use_waterfall, can_use_dive, can_use_cut, can_use_strength, can_use_flash, can_encounter_swords_of_justice
@@ -396,12 +401,10 @@ class Plugin(PluginProtocol):
 
         # We edit the "Starting the game" connection with the set starting_town here
         connection = self.world.get_entrance("Starting the game")
-        starting_region = self.world.regions["starting_town"]
+        starting_region = self.world.regions[self.world.starting_town]
         connection.connected_region = starting_region
         self.world.regions["Nuvema Town"].entrances.remove(connection)
         starting_region.entrances.append(connection)
-
-        self.world.hm_with_badges = self.get_option("hm_with_badges", False)
 
         # Missing Connections
         self.world.regions["Route 1 East"].connect(
