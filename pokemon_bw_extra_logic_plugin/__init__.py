@@ -4,10 +4,10 @@ from typing import TYPE_CHECKING
 from zipfile import ZipFile
 if __name__ == '__main__':
     from data.api import PluginProtocol
-    from starting_town import DEFAULT_STARTING_TOWN as _starting_town_check  # noqa: F401
+    from starting_town import DEFAULT_STARTING_TOWN
 else:
     from .data.api import PluginProtocol
-    from .starting_town import DEFAULT_STARTING_TOWN as _starting_town_check  # noqa: F401
+    from .starting_town import DEFAULT_STARTING_TOWN
 try:
     from BaseClasses import ItemClassification, CollectionState
     if TYPE_CHECKING:
@@ -20,6 +20,26 @@ try:
     from worlds.pokemon_bw.plugins._dev import DEV
 except ImportError:
     DEV = False
+
+
+def _import_main_rules() -> tuple:
+    # Resolves the main apworld's rule functions
+    # `RuntimeError: dictionary changed size during iteration`
+    from worlds.pokemon_bw.data.locations.rules import (can_use_surf, can_use_waterfall, can_use_dive, can_use_cut,
+                                                        can_use_strength, can_use_flash,
+                                                        can_encounter_swords_of_justice)
+    from worlds.pokemon_bw.data.pokemon.evolution_methods import can_reach_mistralton_city
+    return (can_use_surf, can_use_waterfall, can_use_dive, can_use_cut, can_use_strength, can_use_flash,
+            can_encounter_swords_of_justice, can_reach_mistralton_city)
+
+
+_MAIN_RULES: tuple = ()
+try:
+    _MAIN_RULES = _import_main_rules()
+except ImportError:
+    pass
+
+_rules_modified = False
 
 
 # This has to exactly be named "Plugin" and should inherit from "PluginProtocol"
@@ -44,11 +64,11 @@ class Plugin(PluginProtocol):
                 loaded_file = pkgutil.get_data(__name__, f"files/a003/{i:03d}")
                 narc_file = self.get_from_narc("a/0/0/3", i)
                 self.otpp_patch_array(narc_file, loaded_file)
-            for i in [12, 32, 214, 308, 310, 510, 634, 642, 648, 652, 706, 778, 792, 794, 866]:
+            for i in [12, 32, 214, 308, 310, 510, 634, 642, 648, 652, 674, 706, 752, 778, 792, 794, 866]:
                 loaded_file = pkgutil.get_data(__name__, f"files/a057/{i:03d}")
                 narc_file = self.get_from_narc("a/0/5/7", i)
                 self.otpp_patch_array(narc_file, loaded_file)
-            for i in [16, 62, 154, 317, 321, 397]:
+            for i in [16, 62, 154, 317, 321, 337, 376, 397]:
                 loaded_file = pkgutil.get_data(__name__, f"files/a125/{i:03d}")
                 narc_file = self.get_from_narc("a/1/2/5", i)
                 self.otpp_patch_array(narc_file, loaded_file)
@@ -285,8 +305,12 @@ class Plugin(PluginProtocol):
 
 
     def generate_early(self):
-        from .starting_town import (TOWN_LIST, DEFAULT_STARTING_TOWN)
+        from .starting_town import TOWN_LIST
         if DEV: return
+
+        # Patch the main apworld's logic rules here rather than in `stage_init()`. Only the first
+        # Pokémon BW player of the multiworld actually does it, see `_apply_rule_modifications()`.
+        self._apply_rule_modifications()
 
         # Get full and player-provided lists
         # `support_weighting=False` is very important if you want to add a list option
@@ -358,8 +382,27 @@ class Plugin(PluginProtocol):
 
     @classmethod
     def stage_init(cls):
-        from worlds.pokemon_bw.data.locations.rules import can_use_surf, can_use_waterfall, can_use_dive, can_use_cut, can_use_strength, can_use_flash, can_encounter_swords_of_justice
-        from worlds.pokemon_bw.data.pokemon.evolution_methods import can_reach_mistralton_city
+        # This thing is cursed so we intentionally sckip it
+        pass
+
+    @classmethod
+    def _apply_rule_modifications(cls):
+        global _rules_modified, _MAIN_RULES
+        if _rules_modified:
+            # rules = module-level objects of the main apworld shared by every Pokémon BW
+            # `modify_rule()` stacks a new wrapper on each call, so this must happen
+            # exactly once
+            return
+        if not _MAIN_RULES:
+            # Only reached if the main apworld wasn't importable yet when this file was loaded
+            # Safe here, we're no longer inside the `sys.modules` loop
+            _MAIN_RULES = _import_main_rules()
+        (can_use_surf, can_use_waterfall, can_use_dive, can_use_cut, can_use_strength, can_use_flash,
+         can_encounter_swords_of_justice, can_reach_mistralton_city) = _MAIN_RULES
+        _rules_modified = True
+
+        # these rules are patched globally, so they must never capture anything seed- or player-specific
+        # kkeeps the settings of one Pokémon BW player fro, leaking into another's logic
 
         def cut_with_trio_badge(old_rule: "ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:
             return old_rule(state, world) and (state.has("Trio Badge", world.player) or not world.hm_with_badges)
