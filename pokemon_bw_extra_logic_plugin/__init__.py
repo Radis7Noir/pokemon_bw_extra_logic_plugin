@@ -439,7 +439,7 @@ class Plugin(PluginProtocol):
     def create_regions(self, catchable_species_data: dict[str, "SpeciesData"]):
         from worlds.pokemon_bw.data.pokemon.movesets import table as moveset_table
         from worlds.pokemon_bw.data.locations.rules import (can_use_cut, can_use_surf, can_use_strength, can_use_surf_or_strength,
-                                                            dark_cave, challengers_cave, can_beat_ghetsis)
+                                                            dark_cave, challengers_cave, can_beat_ghetsis, moor_of_icirrus)
         if DEV: return
 
         # We edit the "Starting the game" connection with the set starting_town here
@@ -448,6 +448,11 @@ class Plugin(PluginProtocol):
         connection.connected_region = starting_region
         self.world.regions["Nuvema Town"].entrances.remove(connection)
         starting_region.entrances.append(connection)
+
+        # Missing Logic
+        self.world.get_location("Route 8 - Item from ranger Annie").access_rule = lambda state: moor_of_icirrus(state, self.world)
+        self.world.get_location("Route 8 - East item").access_rule = lambda state: moor_of_icirrus(state, self.world)
+        self.world.get_location("Route 8 - East hidden item").access_rule = lambda state: moor_of_icirrus(state, self.world)
 
         # Missing Connections
         self.world.regions["Route 1 East"].connect(
