@@ -2,6 +2,19 @@
 
 Changelog
 
+## v8
+* Fixed Tornadus/Thundurus/Landorus cutscenes crashing the game when there are too many dark areas
+  * As a consequence, the roamer is now a static encounter until a better fix is made
+* Added `randomize_starting_town` as an option
+  * Swaps the player's house with a house from another town
+  * Valid choices are: "Nuvema Town", "Accumula Town", "Striaton City", "Nacrene City", "Castelia City", "Nimbasa City", "Driftveil City", "Mistralton City", "Icirrus City", "Opelucid City", "Lacunosa Town", "Undella Town"
+  * `starting_town_blacklist` prevents the listed towns to be chosen as starting town if `randomize_starting_town` is activated
+  * If Cynthia is selected as goal, "Lacunosa Town" and "Undella Town" cannot be selected as the starting town
+  * If all towns are blacklisted or if there is no possible choice, the option will fall back to Nuvema Town
+  * When Mistralton City is selected as the starting town, the Move reminder house is relocated in Nuvema Town (the logic for move evolution is updated accordingly)
+  * When the starting town is not Nuvema Town, Mom will not give her first item. An added clerk NPC in Nuvema Town will hand it instead
+* Adjusted multiple cutscenes to prevent sequence breaks with a random starting town
+
 ## v7
 * Udated multiple patches to ensure compatibility with the QoL plugin
 * Fixed logic related to dark_areas in multiple areas
