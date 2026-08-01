@@ -5,6 +5,7 @@ Changelog
 ## v8
 * Fixed Tornadus/Thundurus/Landorus cutscenes crashing the game when there are too many dark areas
   * As a consequence, the roamer is now a static encounter until a better fix is made
+* Fixed the logic of the three locations near the entrance of Moor of Icirrus that can't be reached during winter without Surf
 * Added `randomize_starting_town` as an option
   * Swaps the player's house with a house from another town
   * Valid choices are: "Nuvema Town", "Accumula Town", "Striaton City", "Nacrene City", "Castelia City", "Nimbasa City", "Driftveil City", "Mistralton City", "Icirrus City", "Opelucid City", "Lacunosa Town", "Undella Town"
