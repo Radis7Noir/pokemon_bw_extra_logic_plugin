@@ -50,6 +50,13 @@ This plugin is currently only comptabile with v0.3.35+ of the main BW APworld.
   * `_Random` has a 50% chance to include each area that is not already included
   * `[]` removes all darken areas
   * Removing the option entirely will keep the default dark areas
+- `randomize_starting_town`
+  * Swaps the player's house with a house from another town
+  * `starting_town_blacklist` prevents the listed towns to be chosen as starting town if `randomize_starting_town` is activated
+  * If Cynthia is selected as goal, "Lacunosa Town" and "Undella Town" cannot be selected as the starting town
+  * If all towns are blacklisted or if there is no possible choice, the option will fall back to Nuvema Town
+  * When Mistralton City is selected as the starting town, the Move reminder house is relocated in Nuvema Town (the logic for move evolution is updated accordingly)
+  * When the starting town is not Nuvema Town, Mom will not give her first item. An added clerk NPC in Nuvema Town will hand it instead
 
 ## Dark Area List
 ```
@@ -84,6 +91,9 @@ Example:
 ```
       dark_areas: ["Wellspring Cave B1F", "Mistralton Cave", "Challengers Cave", "_Random"]
 ```
+
+## Starting Town List
+`"Nuvema Town", "Accumula Town", "Striaton City", "Nacrene City", "Castelia City", "Nimbasa City", "Driftveil City", "Mistralton City", "Icirrus City", "Opelucid City", "Lacunosa Town", "Undella Town"`
 
 ## Instructions
 - Download the latest release of the plugin APworld
