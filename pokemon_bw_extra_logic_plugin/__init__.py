@@ -47,7 +47,7 @@ class Plugin(PluginProtocol):
 
     name = "Pokemon BW Extra Logic Plugin"
     domain = "extra_logic"
-    version = "1.8.0"
+    version = "1.9.0"
     author = "RadisNoir"
 
     # This is called during the patching process, after the main apworld did all its standard modifications to the rom.
@@ -402,7 +402,7 @@ class Plugin(PluginProtocol):
         _rules_modified = True
 
         # these rules are patched globally, so they must never capture anything seed- or player-specific
-        # kkeeps the settings of one Pokémon BW player fro, leaking into another's logic
+        # kkeeps the settings of one Pokémon BW player from leaking into another's logic
 
         def cut_with_trio_badge(old_rule: "ExtendedRule", state: CollectionState, world: "PokemonBWWorld") -> bool:
             return old_rule(state, world) and (state.has("Trio Badge", world.player) or not world.hm_with_badges)

@@ -2,6 +2,10 @@
 
 Changelog
 
+## v9
+* Fixed Landorus appearing without Tornadus and Thundurus in the party
+* Imported the updated field move patches from the QoL plugin
+
 ## v8
 * Fixed Tornadus/Thundurus/Landorus cutscenes crashing the game when there are too many dark areas
   * As a consequence, the roamer is now a static encounter until a better fix is made
